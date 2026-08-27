@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proveedor - Recepción de Órdenes</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; max-width: 700px; margin: auto; background-color: #f4f6f8; }
+    .orden { border: 1px solid #0066cc; padding: 20px; margin-bottom: 20px; border-radius: 8px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    h2 { color: #1a252c; }
+    h3 { margin-top: 0; color: #0066cc; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #e1e4e8; padding: 10px; text-align: left; }
+    th { background-color: #0066cc; color: white; }
+    tr:nth-child(even) { background-color: #f8fafc; }
+    .total-box { margin-top: 15px; font-size: 1.1em; font-weight: bold; color: #2d3748; }
+  </style>
+</head>
+<body>
+  <h2>Panel del Proveedor (Órdenes Recibidas)</h2>
+  <div id="lista-ordenes"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const contenedor = document.getElementById('lista-ordenes');
+
+    socket.on('orden_proveedor', (orden) => {
+      let filas = '';
+      orden.items.forEach(item => {
+        filas += `<tr>
+          <td>${item.codigo}</td>
+          <td>${item.descripcion}</td>
+          <td><strong>${item.cantidad}</strong></td>
+        </tr>`;
+      });
+
+      const htmlOrden = `
+        <div class="orden">
+          <h3>Orden #${orden.id} <small style="color:#718096;">(${orden.fecha})</small></h3>
+          <p><strong>Solicitud Almacén:</strong> ${orden.pindo} PINDO | ${orden.sanyo} SANYO</p>
+          <table>
+            <thead>
+              <tr><th>Código</th><th>Descripción</th><th>Cantidad a Enviar</th></tr>
+            </thead>
+            <tbody>${filas}</tbody>
+          </table>
+          <div class="total-box">TOTAL DE PIEZAS A DESPACHAR: ${orden.totalPiezas} unidades</div>
+        </div>
+      `;
+      contenedor.innerHTML = htmlOrden + contenedor.innerHTML;
+    });
+  </script>
+</body>
+</html>
