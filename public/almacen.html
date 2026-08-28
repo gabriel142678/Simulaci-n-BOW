@@ -5,13 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Almacén - Crear Pedido</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; max-width: 400px; margin: auto; background-color: #f4f6f8; }
-    .card { background: white; border: 1px solid #e1e4e8; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    h2 { color: #1a252c; margin-top: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; max-width: 450px; margin: auto; background-color: #f4f6f8; }
+    .card { background: white; border: 1px solid #e1e4e8; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    h2, h3 { color: #1a252c; margin-top: 0; }
     label { display: block; margin-top: 15px; font-weight: 600; color: #4a5568; }
     input { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 16px; }
     button { width: 100%; padding: 12px; background: #0066cc; color: white; border: none; border-radius: 6px; margin-top: 20px; font-size: 16px; font-weight: bold; cursor: pointer; }
     button:hover { background: #0052a3; }
+    
+    .item-historial { background: white; border: 1px solid #cbd5e0; border-left: 5px solid #d69e2e; padding: 12px 15px; border-radius: 6px; margin-bottom: 10px; }
+    .item-historial.despachado { border-left-color: #38a169; }
+    .estado-badge { font-weight: bold; display: inline-block; margin-top: 5px; }
+    .estado-pendiente { color: #d69e2e; }
+    .estado-camino { color: #38a169; }
   </style>
 </head>
 <body>
@@ -24,9 +30,14 @@
     <button onclick="enviarPedido()">Enviar Orden a Proveedor</button>
   </div>
 
+  <h3>Historial de Pedidos Enviados</h3>
+  <div id="historial-pedidos"></div>
+
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
+    const contenedorHistorial = document.getElementById('historial-pedidos');
+
     function enviarPedido() {
       const pindo = document.getElementById('pindo').value;
       const sanyo = document.getElementById('sanyo').value;
@@ -37,8 +48,32 @@
       }
       
       socket.emit('nuevo_pedido', { pindo, sanyo });
-      alert("Pedido enviado con éxito");
+      document.getElementById('pindo').value = "0";
+      document.getElementById('sanyo').value = "0";
     }
+
+    // Al recibir confirmación del pedido recién hecho
+    socket.on('orden_confirmada_almacen', (orden) => {
+      const itemHTML = `
+        <div class="item-historial" id="historial-orden-${orden.id}">
+          <strong>Orden #${orden.id}</strong> (${orden.pindo} PINDO, ${orden.sanyo} SANYO)
+          <div class="estado-badge estado-pendiente" id="estado-texto-${orden.id}">En espera de despacho...</div>
+        </div>
+      `;
+      contenedorHistorial.innerHTML = itemHTML + contenedorHistorial.innerHTML;
+    });
+
+    // Escuchar cuando el proveedor despache la orden
+    socket.on('orden_despachada_almacen', (idOrden) => {
+      const elementoEstado = document.getElementById(`estado-texto-${idOrden}`);
+      const elementoTarjeta = document.getElementById(`historial-orden-${idOrden}`);
+      
+      if (elementoEstado) {
+        elementoEstado.innerText = `Orden #${idOrden} en camino`;
+        elementoEstado.className = "estado-badge estado-camino";
+        elementoTarjeta.classList.add('despachado');
+      }
+    });
   </script>
 </body>
 </html>
