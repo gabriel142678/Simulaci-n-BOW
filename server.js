@@ -8,6 +8,10 @@ const io = new Server(server);
 
 app.use(express.static('public'));
 
+app.get('/', (req, res) => {
+  res.redirect('/almacen.html');
+});
+
 // Lista de Materiales (BOM)
 const bom = [
   { codigo: "PZA-BLA-01", desc: "Bloque Blanco 1 Pin", pindo: 3, sanyo: 3 },
@@ -32,6 +36,7 @@ const bom = [
 let numeroOrden = 1;
 
 io.on('connection', (socket) => {
+  // Recibir nuevo pedido desde el Almacén
   socket.on('nuevo_pedido', (datos) => {
     const pindo = parseInt(datos.pindo) || 0;
     const sanyo = parseInt(datos.sanyo) || 0;
@@ -57,10 +62,18 @@ io.on('connection', (socket) => {
       pindo,
       sanyo,
       totalPiezas: totalPiezasOrden,
-      items: componentesCalculados
+      items: componentesCalculados,
+      estado: "Pendiente"
     };
 
+    // Emitir la orden al proveedor y devolver confirmación con ID al almacén
     io.emit('orden_proveedor', ordenProcesada);
+    socket.emit('orden_confirmada_almacen', ordenProcesada);
+  });
+
+  // Notificar cambio de estado cuando el proveedor despacha
+  socket.on('despachar_orden', (idOrden) => {
+    io.emit('orden_despachada_almacen', idOrden);
   });
 });
 
