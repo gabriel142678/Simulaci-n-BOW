@@ -22,7 +22,6 @@
       text-align: center;
     }
 
-    /* Contenedor de las dos imágenes y campos */
     .grid-productos {
       display: flex;
       gap: 40px;
@@ -42,8 +41,9 @@
       height: 180px;
       object-fit: cover;
       margin-bottom: 15px;
-      border-radius: 4px;
-      background-color: #f4f6f8;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      background-color: #f8fafc;
     }
 
     label {
@@ -67,7 +67,6 @@
       border-color: #0056b3;
     }
 
-    /* Botón azul central */
     button.btn-enviar {
       width: 100%;
       max-width: 500px;
@@ -86,7 +85,6 @@
       background-color: #004494;
     }
 
-    /* Contenedor del historial */
     .historial-container {
       background-color: #f1f4f9;
       padding: 30px;
@@ -103,11 +101,10 @@
       font-size: 20px;
     }
 
-    /* Tarjetas de órdenes enviadas */
     .item-historial {
       background: white;
       border: 1px solid #e2e8f0;
-      border-left: 5px solid #a0aec0; /* Borde inicial gris */
+      border-left: 5px solid #a0aec0;
       padding: 18px;
       border-radius: 6px;
       margin-bottom: 12px;
@@ -116,9 +113,8 @@
       font-size: 16px;
     }
 
-    /* Cuando el proveedor despacha la orden */
     .item-historial.despachado {
-      border-left-color: #38a169; /* Borde verde izquierdo */
+      border-left-color: #38a169;
     }
 
     .orden-texto {
@@ -142,7 +138,7 @@
     }
 
     .estado-camino {
-      color: #38a169; /* Texto verde */
+      color: #38a169;
     }
   </style>
 </head>
@@ -152,12 +148,12 @@
 
   <div class="grid-productos">
     <div class="producto-card">
-      <img src="pindo.jpeg" alt="Imagen PINDO">
+      <img id="img-pindo" src="Pindo.jpeg" onerror="probarVariaciones(this, 'Pindo')" alt="PINDO">
       <label>Cantidad PINDO:</label>
       <input type="number" id="pindo" value="0" min="0">
     </div>
     <div class="producto-card">
-      <img src="sanyo.jpeg" alt="Imagen SANYO">
+      <img id="img-sanyo" src="Sayo.jpeg" onerror="probarVariaciones(this, 'Sayo')" alt="SANYO">
       <label>Cantidad SANYO:</label>
       <input type="number" id="sanyo" value="0" min="0">
     </div>
@@ -174,6 +170,19 @@
   <script>
     const socket = io();
 
+    // Prueba combinaciones comunes en caso de que varíe entre .jpg / .png / minúsculas
+    function probarVariaciones(img, nombre) {
+      const opciones = [
+        `${nombre}.jpeg`, `${nombre}.jpg`, `${nombre}.png`,
+        `${nombre.toLowerCase()}.jpeg`, `${nombre.toLowerCase()}.jpg`, `${nombre.toLowerCase()}.png`
+      ];
+      let idx = parseInt(img.getAttribute('data-try') || '0');
+      if (idx < opciones.length) {
+        img.setAttribute('data-try', idx + 1);
+        img.src = opciones[idx];
+      }
+    }
+
     function enviarPedido() {
       const pindo = document.getElementById('pindo').value;
       const sanyo = document.getElementById('sanyo').value;
@@ -188,7 +197,6 @@
       document.getElementById('sanyo').value = "0";
     }
 
-    // Confirmación al presionar enviar
     socket.on('orden_confirmada_almacen', (orden) => {
       const contenedor = document.getElementById('historial-pedidos');
       const itemHTML = `
@@ -201,7 +209,6 @@
       contenedor.innerHTML = itemHTML + contenedor.innerHTML;
     });
 
-    // Cuando el proveedor presiona "Enviado"
     socket.on('orden_despachada_almacen', (idOrden) => {
       const tarjeta = document.getElementById(`tarjeta-orden-${idOrden}`);
       const badge = document.getElementById(`badge-status-${idOrden}`);
