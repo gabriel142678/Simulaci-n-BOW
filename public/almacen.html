@@ -5,38 +5,174 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Almacén - Crear Pedido</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; max-width: 450px; margin: auto; background-color: #f4f6f8; }
-    .card { background: white; border: 1px solid #e1e4e8; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    h2, h3 { color: #1a252c; margin-top: 0; }
-    label { display: block; margin-top: 15px; font-weight: 600; color: #4a5568; }
-    input { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 16px; }
-    button { width: 100%; padding: 12px; background: #0066cc; color: white; border: none; border-radius: 6px; margin-top: 20px; font-size: 16px; font-weight: bold; cursor: pointer; }
-    button:hover { background: #0052a3; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      color: #1a202c;
+      font-size: 28px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    /* Contenedor de las dos imágenes y campos */
+    .grid-productos {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 30px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .producto-card {
+      width: 280px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .producto-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      background-color: #f4f6f8;
+    }
+
+    label {
+      font-weight: 600;
+      color: #4a5568;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 16px;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #0056b3;
+    }
+
+    /* Botón azul central */
+    button.btn-enviar {
+      width: 100%;
+      max-width: 500px;
+      padding: 16px;
+      background-color: #0056b3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 50px;
+      transition: background-color 0.2s;
+    }
+    button.btn-enviar:hover {
+      background-color: #004494;
+    }
+
+    /* Contenedor del historial */
+    .historial-container {
+      background-color: #f1f4f9;
+      padding: 30px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 600px;
+      box-sizing: border-box;
+    }
+
+    .historial-container h3 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #1a202c;
+      font-size: 20px;
+    }
+
+    /* Tarjetas de órdenes enviadas */
+    .item-historial {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-left: 5px solid #a0aec0; /* Borde inicial gris */
+      padding: 18px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      font-size: 16px;
+    }
+
+    /* Cuando el proveedor despacha la orden */
+    .item-historial.despachado {
+      border-left-color: #38a169; /* Borde verde izquierdo */
+    }
+
+    .orden-texto {
+      color: #1a202c;
+      font-weight: bold;
+      margin-right: 8px;
+    }
     
-    .item-historial { background: white; border: 1px solid #cbd5e0; border-left: 5px solid #d69e2e; padding: 12px 15px; border-radius: 6px; margin-bottom: 10px; }
-    .item-historial.despachado { border-left-color: #38a169; }
-    .estado-badge { font-weight: bold; display: inline-block; margin-top: 5px; }
-    .estado-pendiente { color: #d69e2e; }
-    .estado-camino { color: #38a169; }
+    .orden-detalle {
+      color: #2d3748;
+      margin-right: auto;
+    }
+
+    .estado-texto {
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .estado-pendiente {
+      color: #a0aec0;
+    }
+
+    .estado-camino {
+      color: #38a169; /* Texto verde */
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>Almacén: Enviar Pedido</h2>
-    <label>Cantidad PINDO:</label>
-    <input type="number" id="pindo" value="0" min="0">
-    <label>Cantidad SANYO:</label>
-    <input type="number" id="sanyo" value="0" min="0">
-    <button onclick="enviarPedido()">Enviar Orden a Proveedor</button>
+
+  <h2>Almacén: Enviar Pedido</h2>
+
+  <div class="grid-productos">
+    <div class="producto-card">
+      <img src="pindo.jpeg" alt="Imagen PINDO">
+      <label>Cantidad PINDO:</label>
+      <input type="number" id="pindo" value="0" min="0">
+    </div>
+    <div class="producto-card">
+      <img src="sanyo.jpeg" alt="Imagen SANYO">
+      <label>Cantidad SANYO:</label>
+      <input type="number" id="sanyo" value="0" min="0">
+    </div>
   </div>
 
-  <h3>Historial de Pedidos Enviados</h3>
-  <div id="historial-pedidos"></div>
+  <button class="btn-enviar" onclick="enviarPedido()">Enviar Orden a Proveedor</button>
+
+  <div class="historial-container">
+    <h3>Historial de Pedidos Enviados</h3>
+    <div id="historial-pedidos"></div>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
-    const contenedorHistorial = document.getElementById('historial-pedidos');
 
     function enviarPedido() {
       const pindo = document.getElementById('pindo').value;
@@ -52,26 +188,28 @@
       document.getElementById('sanyo').value = "0";
     }
 
-    // Al recibir confirmación del pedido recién hecho
+    // Confirmación al presionar enviar
     socket.on('orden_confirmada_almacen', (orden) => {
+      const contenedor = document.getElementById('historial-pedidos');
       const itemHTML = `
-        <div class="item-historial" id="historial-orden-${orden.id}">
-          <strong>Orden #${orden.id}</strong> (${orden.pindo} PINDO, ${orden.sanyo} SANYO)
-          <div class="estado-badge estado-pendiente" id="estado-texto-${orden.id}">En espera de despacho...</div>
+        <div class="item-historial" id="tarjeta-orden-${orden.id}">
+          <span class="orden-texto">Orden #${orden.id}</span>
+          <span class="orden-detalle">(${orden.pindo} PINDO, ${orden.sanyo} SANYO)</span>
+          <span class="estado-texto estado-pendiente" id="badge-status-${orden.id}">Esperando confirmación...</span>
         </div>
       `;
-      contenedorHistorial.innerHTML = itemHTML + contenedorHistorial.innerHTML;
+      contenedor.innerHTML = itemHTML + contenedor.innerHTML;
     });
 
-    // Escuchar cuando el proveedor despache la orden
+    // Cuando el proveedor presiona "Enviado"
     socket.on('orden_despachada_almacen', (idOrden) => {
-      const elementoEstado = document.getElementById(`estado-texto-${idOrden}`);
-      const elementoTarjeta = document.getElementById(`historial-orden-${idOrden}`);
+      const tarjeta = document.getElementById(`tarjeta-orden-${idOrden}`);
+      const badge = document.getElementById(`badge-status-${idOrden}`);
       
-      if (elementoEstado) {
-        elementoEstado.innerText = `Orden #${idOrden} en camino`;
-        elementoEstado.className = "estado-badge estado-camino";
-        elementoTarjeta.classList.add('despachado');
+      if (badge && tarjeta) {
+        tarjeta.classList.add('despachado');
+        badge.innerText = `Orden #${idOrden} en camino`;
+        badge.className = "estado-texto estado-camino";
       }
     });
   </script>
