@@ -8,7 +8,7 @@ const io = new Server(server);
 
 app.use(express.static('public'));
 
-// Definición de bloques por Zona para Pindo y Sayo
+// Configuración de bloques detallados por Zona
 const ZONAS_CONFIG = {
   "Zona 1": {
     pindo: ["Bloque azul de 2 pines", "Bloque amarillo de 2 pines", "2 bloques Blanco de 1 pines"],
@@ -32,15 +32,12 @@ let pedidos = [];
 let contadorPedidos = 1;
 
 io.on('connection', (socket) => {
-  console.log('Cliente conectado:', socket.id);
-
-  // Enviar historial de pedidos al conectar
   socket.emit('cargar_pedidos_iniciales', pedidos);
 
-  // Evento cuando Almacén crea un pedido
   socket.on('nuevo_pedido', (datos) => {
     let detalleBloques = [];
     
+    // Solo si es una Zona específica se agregan los bloques detallados
     if (datos.zona && ZONAS_CONFIG[datos.zona]) {
       const config = ZONAS_CONFIG[datos.zona];
       if (parseInt(datos.pindo) > 0) {
@@ -55,19 +52,17 @@ io.on('connection', (socket) => {
       id: contadorPedidos++,
       pindo: datos.pindo || 0,
       sanyo: datos.sanyo || 0,
-      zona: datos.zona || "Personalizado",
+      zona: datos.zona || "Pedido Normal",
       bloques: detalleBloques,
-      estado: 'Pendiente' // Estados: 'Pendiente' -> 'Recibido' -> 'En Camino'
+      estado: 'Pendiente'
     };
 
     pedidos.push(nuevoPedido);
 
-    // Notificar a Proveedor y Almacén
     io.emit('nuevo_pedido_proveedor', nuevoPedido);
     socket.emit('orden_confirmada_almacen', nuevoPedido);
   });
 
-  // Evento 1 del Proveedor: Marcar como RECIBIDO
   socket.on('pedido_recibido', (idOrden) => {
     const orden = pedidos.find(p => p.id === idOrden);
     if (orden) {
@@ -77,7 +72,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Evento 2 del Proveedor: Marcar como EN CAMINO / DESPACHADO
   socket.on('despachar_pedido', (idOrden) => {
     const orden = pedidos.find(p => p.id === idOrden);
     if (orden) {
