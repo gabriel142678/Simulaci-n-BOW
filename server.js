@@ -8,76 +8,87 @@ const io = new Server(server);
 
 app.use(express.static('public'));
 
-app.get('/', (req, res) => {
-  res.redirect('/almacen.html');
-});
+// Definición de bloques por Zona para Pindo y Sayo
+const ZONAS_CONFIG = {
+  "Zona 1": {
+    pindo: ["Bloque azul de 2 pines", "Bloque amarillo de 2 pines", "2 bloques Blanco de 1 pines"],
+    sayo: ["1 bloque blanco de 1 pines", "1 bloque rojo de 4 pines", "1 bloque azul de 6 pines", "1 bloque verde de 8 pines"]
+  },
+  "Zona 2": {
+    pindo: ["1 bloque verde de 6 pines", "1 bloque amarillo de 6 pines", "1 bloque azul de 8 pines"],
+    sayo: ["1 bloque rojo de 6 pines", "1 bloque azul de 4 pines", "1 bloque amarillo de 8 pines"]
+  },
+  "Zona 3": {
+    pindo: ["1 bloque blanco de 1 pines", "1 bloque rojo de 2 pines", "1 bloque azul de 2 pines", "1 bloque rojo de 8 pines"],
+    sayo: ["2 bloques blancos de 1 pines", "1 bloque rojo de 2 pines", "1 bloque verde de 4 pines", "1 bloque amarillo de 4 pines"]
+  },
+  "Zona 4": {
+    pindo: ["1 bloque rojo de 4 pines", "1 bloque azul de 4 pines", "1 bloque verde de 4 pines"],
+    sayo: ["1 bloque amarillo de 2 pines", "1 bloque verde de 2 pines", "1 bloque azul de 2 pines"]
+  }
+};
 
-// Lista de Materiales (BOM)
-const bom = [
-  { codigo: "PZA-BLA-01", desc: "Bloque Blanco 1 Pin", pindo: 3, sanyo: 3 },
-  { codigo: "PZA-ROJ-02", desc: "Bloque Rojo 2 Pines", pindo: 1, sanyo: 1 },
-  { codigo: "PZA-ROJ-04", desc: "Bloque Rojo 4 Pines", pindo: 1, sanyo: 1 },
-  { codigo: "PZA-ROJ-06", desc: "Bloque Rojo 6 Pines", pindo: 0, sanyo: 1 },
-  { codigo: "PZA-ROJ-08", desc: "Bloque Rojo 8 Pines", pindo: 1, sanyo: 0 },
-  { codigo: "PZA-AZU-02", desc: "Bloque Azul 2 Pines", pindo: 2, sanyo: 1 },
-  { codigo: "PZA-AZU-04", desc: "Bloque Azul 4 Pines", pindo: 1, sanyo: 1 },
-  { codigo: "PZA-AZU-06", desc: "Bloque Azul 6 Pines", pindo: 0, sanyo: 1 },
-  { codigo: "PZA-AZU-08", desc: "Bloque Azul 8 Pines", pindo: 1, sanyo: 0 },
-  { codigo: "PZA-AMA-02", desc: "Bloque Amarillo 2 Pines", pindo: 1, sanyo: 1 },
-  { codigo: "PZA-AMA-04", desc: "Bloque Amarillo 4 Pines", pindo: 0, sanyo: 1 },
-  { codigo: "PZA-AMA-06", desc: "Bloque Amarillo 6 Pines", pindo: 1, sanyo: 0 },
-  { codigo: "PZA-AMA-08", desc: "Bloque Amarillo 8 Pines", pindo: 0, sanyo: 1 },
-  { codigo: "PZA-VER-02", desc: "Bloque Verde 2 Pines", pindo: 0, sanyo: 1 },
-  { codigo: "PZA-VER-04", desc: "Bloque Verde 4 Pines", pindo: 1, sanyo: 1 },
-  { codigo: "PZA-VER-06", desc: "Bloque Verde 6 Pines", pindo: 1, sanyo: 0 },
-  { codigo: "PZA-VER-08", desc: "Bloque Verde 8 Pines", pindo: 0, sanyo: 1 }
-];
-
-let numeroOrden = 1;
+let pedidos = [];
+let contadorPedidos = 1;
 
 io.on('connection', (socket) => {
-  // Recibir nuevo pedido desde el Almacén
+  console.log('Cliente conectado:', socket.id);
+
+  // Enviar historial de pedidos al conectar
+  socket.emit('cargar_pedidos_iniciales', pedidos);
+
+  // Evento cuando Almacén crea un pedido
   socket.on('nuevo_pedido', (datos) => {
-    const pindo = parseInt(datos.pindo) || 0;
-    const sanyo = parseInt(datos.sanyo) || 0;
+    let detalleBloques = [];
     
-    let totalPiezasOrden = 0;
-    const componentesCalculados = [];
-
-    bom.forEach((item) => {
-      const cantRequerida = (item.pindo * pindo) + (item.sanyo * sanyo);
-      if (cantRequerida > 0) {
-        totalPiezasOrden += cantRequerida;
-        componentesCalculados.push({
-          codigo: item.codigo,
-          descripcion: item.desc,
-          cantidad: cantRequerida
-        });
+    if (datos.zona && ZONAS_CONFIG[datos.zona]) {
+      const config = ZONAS_CONFIG[datos.zona];
+      if (parseInt(datos.pindo) > 0) {
+        detalleBloques.push({ producto: "PINDO", bloques: config.pindo });
       }
-    });
+      if (parseInt(datos.sanyo) > 0) {
+        detalleBloques.push({ producto: "SAYO", bloques: config.sayo });
+      }
+    }
 
-    const ordenProcesada = {
-      id: numeroOrden++,
-      fecha: new Date().toLocaleTimeString(),
-      pindo,
-      sanyo,
-      totalPiezas: totalPiezasOrden,
-      items: componentesCalculados,
-      estado: "Pendiente"
+    const nuevoPedido = {
+      id: contadorPedidos++,
+      pindo: datos.pindo || 0,
+      sanyo: datos.sanyo || 0,
+      zona: datos.zona || "Personalizado",
+      bloques: detalleBloques,
+      estado: 'Pendiente' // Estados: 'Pendiente' -> 'Recibido' -> 'En Camino'
     };
 
-    // Emitir la orden al proveedor y devolver confirmación con ID al almacén
-    io.emit('orden_proveedor', ordenProcesada);
-    socket.emit('orden_confirmada_almacen', ordenProcesada);
+    pedidos.push(nuevoPedido);
+
+    // Notificar a Proveedor y Almacén
+    io.emit('nuevo_pedido_proveedor', nuevoPedido);
+    socket.emit('orden_confirmada_almacen', nuevoPedido);
   });
 
-  // Notificar cambio de estado cuando el proveedor despacha
-  socket.on('despachar_orden', (idOrden) => {
-    io.emit('orden_despachada_almacen', idOrden);
+  // Evento 1 del Proveedor: Marcar como RECIBIDO
+  socket.on('pedido_recibido', (idOrden) => {
+    const orden = pedidos.find(p => p.id === idOrden);
+    if (orden) {
+      orden.estado = 'Recibido';
+      io.emit('orden_recibida_almacen', idOrden);
+      io.emit('orden_recibida_proveedor', idOrden);
+    }
+  });
+
+  // Evento 2 del Proveedor: Marcar como EN CAMINO / DESPACHADO
+  socket.on('despachar_pedido', (idOrden) => {
+    const orden = pedidos.find(p => p.id === idOrden);
+    if (orden) {
+      orden.estado = 'En Camino';
+      io.emit('orden_despachada_almacen', idOrden);
+      io.emit('orden_despachada_proveedor', idOrden);
+    }
   });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Servidor activo en el puerto ${PORT}`);
+  console.log(`Servidor iniciado en puerto ${PORT}`);
 });
