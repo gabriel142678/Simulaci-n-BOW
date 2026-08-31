@@ -16,15 +16,15 @@
     }
 
     h2 { color: #1a202c; font-size: 28px; margin-bottom: 30px; }
-    .pedidos-container { width: 100%; max-width: 650px; }
+    .pedidos-container { width: 100%; max-width: 800px; }
 
     .tarjeta-pedido {
       background: white;
       border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 20px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      padding: 24px;
+      margin-bottom: 25px;
+      border: 1px solid #cbd5e0;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06);
       border-left: 6px solid #a0aec0;
     }
 
@@ -35,42 +35,64 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
-      border-bottom: 1px solid #edf2f7;
-      padding-bottom: 8px;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 10px;
     }
 
-    .titulo-orden { font-size: 20px; font-weight: bold; color: #2d3748; }
-    .badge-zona {
-      background-color: #edf2f7;
-      color: #4a5568;
-      padding: 4px 10px;
+    .titulo-orden { font-size: 22px; font-weight: bold; color: #1a365d; }
+    .badge-tipo {
+      background-color: #2b6cb0;
+      color: white;
+      padding: 4px 12px;
       border-radius: 12px;
       font-size: 14px;
       font-weight: 600;
     }
 
-    /* Tablas dentro de los pedidos */
-    table.tabla-detalle {
+    /* Estilo de Tabla Exacto a la Imagen */
+    table.tabla-piezas {
       width: 100%;
       border-collapse: collapse;
-      margin: 12px 0 18px 0;
+      margin: 15px 0;
       font-size: 14px;
     }
 
-    table.tabla-detalle th, table.tabla-detalle td {
-      border: 1px solid #e2e8f0;
-      padding: 8px 12px;
+    table.tabla-piezas th {
+      background-color: #205493; /* Azul Oscuro de la foto */
+      color: white;
+      text-align: center;
+      padding: 10px 8px;
+      font-weight: bold;
+      border: 1px solid #1a365d;
+    }
+
+    table.tabla-piezas td {
+      border: 1px solid #cbd5e0;
+      padding: 8px 10px;
+      text-align: center;
+      color: #2d3748;
+    }
+
+    table.tabla-piezas td.col-desc {
       text-align: left;
     }
 
-    table.tabla-detalle th {
+    table.tabla-piezas tr:nth-child(even) {
       background-color: #f8fafc;
-      color: #4a5568;
-      font-weight: 600;
     }
 
-    .acciones-btn { display: flex; gap: 12px; }
+    table.tabla-piezas tr.fila-total {
+      font-weight: bold;
+      background-color: #edf2f7;
+    }
+
+    table.tabla-piezas tr.fila-total td {
+      border-top: 2px solid #205493;
+      font-size: 15px;
+    }
+
+    .acciones-btn { display: flex; gap: 15px; margin-top: 15px; }
 
     button {
       flex: 1;
@@ -80,18 +102,23 @@
       font-size: 15px;
       font-weight: bold;
       cursor: pointer;
+      transition: background-color 0.2s;
     }
 
     .btn-recibir { background-color: #d69e2e; color: white; }
+    .btn-recibir:hover { background-color: #b7791f; }
+
     .btn-despachar { background-color: #38a169; color: white; }
+    .btn-despachar:hover { background-color: #2f855a; }
+
     .btn-deshabilitado { background-color: #cbd5e0 !important; cursor: not-allowed; }
 
-    .estado-texto-prov { font-weight: bold; margin-top: 10px; font-size: 15px; }
+    .estado-texto-prov { font-weight: bold; margin-top: 12px; font-size: 15px; }
   </style>
 </head>
 <body>
 
-  <h2>Proveedor: Solicitudes de Almacén</h2>
+  <h2>Proveedor: Solicitudes de Piezas</h2>
   <div class="pedidos-container" id="lista-pedidos"></div>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -111,37 +138,27 @@
     function agregarTarjetaProveedor(orden, alInicio = false) {
       const contenedor = document.getElementById('lista-pedidos');
 
-      let tablaHTML = '';
-
-      if (orden.zona === 'Pedido Normal' || !orden.bloques || orden.bloques.length === 0) {
-        tablaHTML = `
-          <table class="tabla-detalle">
-            <thead>
-              <tr><th>Producto</th><th>Cantidad Solicitada</th></tr>
-            </thead>
-            <tbody>
-              <tr><td><strong>PINDO</strong></td><td>${orden.pindo} unidad(es)</td></tr>
-              <tr><td><strong>SAYO</strong></td><td>${orden.sanyo} unidad(es)</td></tr>
-            </tbody>
-          </table>
-        `;
-      } else {
-        tablaHTML = `
-          <table class="tabla-detalle">
-            <thead>
-              <tr><th>Producto</th><th>Bloques Requeridos (Por Zona)</th></tr>
-            </thead>
-            <tbody>
-        `;
-        orden.bloques.forEach(grupo => {
-          tablaHTML += `
+      let filasHTML = '';
+      if (orden.piezas && orden.piezas.length > 0) {
+        orden.piezas.forEach(p => {
+          filasHTML += `
             <tr>
-              <td><strong>${grupo.producto}</strong></td>
-              <td>${grupo.bloques.join('<br>')}</td>
+              <td>${p.codigo}</td>
+              <td>${p.color}</td>
+              <td>${p.pines}</td>
+              <td class="col-desc">${p.descripcion}</td>
+              <td style="font-weight: bold;">${p.cantidadTotal}</td>
             </tr>
           `;
         });
-        tablaHTML += `</tbody></table>`;
+
+        // Fila de Total General al final de la tabla
+        filasHTML += `
+          <tr class="fila-total">
+            <td colspan="4" style="text-align: right; padding-right: 15px;">TOTAL PIEZAS:</td>
+            <td>${orden.totalPiezas}</td>
+          </tr>
+        `;
       }
 
       let claseEstado = '';
@@ -164,11 +181,24 @@
       const cardHTML = `
         <div class="tarjeta-pedido ${claseEstado}" id="prov-orden-${orden.id}">
           <div class="header-pedido">
-            <span class="titulo-orden">Orden #${orden.id}</span>
-            <span class="badge-zona">${orden.zona}</span>
+            <span class="titulo-orden">Orden de Piezas #${orden.id}</span>
+            <span class="badge-tipo">${orden.zona}</span>
           </div>
 
-          ${tablaHTML}
+          <table class="tabla-piezas">
+            <thead>
+              <tr>
+                <th>Código Pieza</th>
+                <th>Color</th>
+                <th>Pines / Tamaño</th>
+                <th>Descripción Componente</th>
+                <th>Cantidad Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filasHTML}
+            </tbody>
+          </table>
 
           <div class="acciones-btn">
             <button id="btn-recibir-${orden.id}" ${btnRecibirAttr} onclick="marcarRecibido(${orden.id})">
