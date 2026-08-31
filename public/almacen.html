@@ -15,12 +15,7 @@
       align-items: center;
     }
 
-    h2 {
-      color: #1a202c;
-      font-size: 28px;
-      margin-bottom: 25px;
-      text-align: center;
-    }
+    h2 { color: #1a202c; font-size: 28px; margin-bottom: 25px; text-align: center; }
 
     .selector-zona-container {
       margin-bottom: 30px;
@@ -33,20 +28,8 @@
       gap: 15px;
     }
 
-    .selector-zona-container label {
-      font-weight: bold;
-      color: #2d3748;
-      font-size: 16px;
-    }
-
-    select {
-      padding: 10px 15px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #cbd5e0;
-      outline: none;
-      background-color: white;
-    }
+    .selector-zona-container label { font-weight: bold; color: #2d3748; font-size: 16px; }
+    select { padding: 10px 15px; font-size: 16px; border-radius: 6px; border: 1px solid #cbd5e0; outline: none; }
 
     .grid-productos {
       display: flex;
@@ -56,116 +39,52 @@
       flex-wrap: wrap;
     }
 
-    .producto-card {
-      width: 280px;
-      display: flex;
-      flex-direction: column;
-    }
-
+    .producto-card { width: 280px; display: flex; flex-direction: column; }
     .producto-card img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-      margin-bottom: 15px;
-      border-radius: 6px;
-      border: 1px solid #e2e8f0;
-      background-color: #f8fafc;
+      width: 100%; height: 180px; object-fit: cover; margin-bottom: 15px;
+      border-radius: 6px; border: 1px solid #e2e8f0; background-color: #f8fafc;
     }
 
-    label {
-      font-weight: 600;
-      color: #4a5568;
-      font-size: 14px;
-      margin-bottom: 8px;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #cbd5e0;
-      border-radius: 6px;
-      font-size: 16px;
-      box-sizing: border-box;
-      outline: none;
-    }
+    label { font-weight: 600; color: #4a5568; font-size: 14px; margin-bottom: 8px; }
+    input { width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 16px; box-sizing: border-box; outline: none; }
 
     button.btn-enviar {
-      width: 100%;
-      max-width: 500px;
-      padding: 16px;
-      background-color: #0056b3;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-bottom: 40px;
-      transition: background-color 0.2s;
+      width: 100%; max-width: 500px; padding: 16px; background-color: #0056b3;
+      color: white; border: none; border-radius: 6px; font-size: 18px; font-weight: bold;
+      cursor: pointer; margin-bottom: 40px; transition: background-color 0.2s;
     }
     button.btn-enviar:hover { background-color: #004494; }
 
     .historial-container {
-      background-color: #f1f4f9;
-      padding: 30px;
-      border-radius: 8px;
-      width: 100%;
-      max-width: 650px;
-      box-sizing: border-box;
+      background-color: #f1f4f9; padding: 30px; border-radius: 8px;
+      width: 100%; max-width: 750px; box-sizing: border-box;
     }
 
-    .historial-container h3 {
-      margin-top: 0;
-      margin-bottom: 20px;
-      color: #1a202c;
-      font-size: 20px;
-    }
+    .historial-container h3 { margin-top: 0; margin-bottom: 20px; color: #1a202c; font-size: 20px; }
 
     .item-historial {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-left: 6px solid #a0aec0;
-      padding: 18px;
-      border-radius: 6px;
-      margin-bottom: 15px;
+      background: white; border: 1px solid #e2e8f0; border-left: 6px solid #a0aec0;
+      padding: 18px; border-radius: 6px; margin-bottom: 15px;
     }
 
-    .item-historial.recibido {
-      border-left-color: #d69e2e; /* Naranja/Amarillo */
-    }
+    .item-historial.recibido { border-left-color: #d69e2e; }
+    .item-historial.despachado { border-left-color: #38a169; }
 
-    .item-historial.despachado {
-      border-left-color: #38a169; /* Verde */
-    }
+    .item-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+    .orden-texto { color: #1a202c; font-weight: bold; }
 
-    .item-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-
-    .orden-texto {
-      color: #1a202c;
-      font-weight: bold;
-    }
-
-    .estado-badge {
-      font-weight: bold;
-      font-size: 14px;
-    }
-
+    .estado-badge { font-weight: bold; font-size: 14px; }
     .estado-pendiente { color: #a0aec0; }
     .estado-recibido { color: #d69e2e; }
     .estado-camino { color: #38a169; }
 
-    .bloques-lista-almacen {
-      margin-top: 8px;
-      font-size: 13px;
-      color: #4a5568;
-      background-color: #f8fafc;
-      padding: 8px 12px;
-      border-radius: 4px;
+    table.tabla-almacen {
+      width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px;
     }
+    table.tabla-almacen th, table.tabla-almacen td {
+      border: 1px solid #e2e8f0; padding: 6px 8px; text-align: center;
+    }
+    table.tabla-almacen th { background-color: #f8fafc; color: #4a5568; }
   </style>
 </head>
 <body>
@@ -173,10 +92,10 @@
   <h2>Almacén: Enviar Pedido</h2>
 
   <div class="selector-zona-container">
-    <label for="select-zona">Seleccionar Grupo / Zona:</label>
+    <label for="select-zona">Tipo de Solicitud:</label>
     <select id="select-zona" onchange="actualizarPreseleccion()">
-      <option value="Personalizado">Personalizado</option>
-      <option value="Zona 1" selected>Zona 1</option>
+      <option value="Pedido Normal" selected>Pedido Normal</option>
+      <option value="Zona 1">Zona 1</option>
       <option value="Zona 2">Zona 2</option>
       <option value="Zona 3">Zona 3</option>
       <option value="Zona 4">Zona 4</option>
@@ -187,12 +106,12 @@
     <div class="producto-card">
       <img src="Pindo.jpeg" onerror="probarVariaciones(this, 'Pindo')" alt="PINDO">
       <label>Cantidad PINDO:</label>
-      <input type="number" id="pindo" value="1" min="0">
+      <input type="number" id="pindo" value="0" min="0">
     </div>
     <div class="producto-card">
       <img src="Sayo.jpeg" onerror="probarVariaciones(this, 'Sayo')" alt="SAYO">
       <label>Cantidad SAYO:</label>
-      <input type="number" id="sanyo" value="1" min="0">
+      <input type="number" id="sanyo" value="0" min="0">
     </div>
   </div>
 
@@ -221,7 +140,7 @@
 
     function actualizarPreseleccion() {
       const zona = document.getElementById('select-zona').value;
-      if (zona !== "Personalizado") {
+      if (zona !== "Pedido Normal") {
         document.getElementById('pindo').value = "1";
         document.getElementById('sanyo').value = "1";
       }
@@ -249,7 +168,7 @@
       const badge = document.getElementById(`badge-almacen-${idOrden}`);
       if (tarjeta && badge) {
         tarjeta.className = "item-historial recibido";
-        badge.innerText = "Proveedor recibió el pedido (En preparación)";
+        badge.innerText = "Proveedor confirmó recepción (En preparación)";
         badge.className = "estado-badge estado-recibido";
       }
     });
@@ -266,11 +185,17 @@
 
     function agregarTarjetaAlmacen(orden, alInicio = false) {
       const contenedor = document.getElementById('historial-pedidos');
-      
-      let htmlDetalle = '';
-      if (orden.bloques && orden.bloques.length > 0) {
-        orden.bloques.forEach(g => {
-          htmlDetalle += `<div><strong>${g.producto}:</strong> ${g.bloques.join(', ')}</div>`;
+
+      let filasPzs = '';
+      if (orden.piezas && orden.piezas.length > 0) {
+        orden.piezas.forEach(p => {
+          filasPzs += `
+            <tr>
+              <td>${p.codigo}</td>
+              <td style="text-align:left;">${p.descripcion}</td>
+              <td><strong>${p.cantidadTotal}</strong></td>
+            </tr>
+          `;
         });
       }
 
@@ -280,8 +205,17 @@
             <span class="orden-texto">Orden #${orden.id} [${orden.zona}]</span>
             <span class="estado-badge estado-pendiente" id="badge-almacen-${orden.id}">Esperando confirmación...</span>
           </div>
-          <div><strong>Cantidades:</strong> ${orden.pindo} PINDO, ${orden.sanyo} SAYO</div>
-          ${htmlDetalle ? `<div class="bloques-lista-almacen">${htmlDetalle}</div>` : ''}
+          <div style="font-size:13px; color:#4a5568; margin-bottom: 8px;">
+            <strong>Solicitud Interna:</strong> ${orden.pindo} PINDO, ${orden.sanyo} SAYO | <strong>Total Piezas:</strong> ${orden.totalPiezas}
+          </div>
+          <table class="tabla-almacen">
+            <thead>
+              <tr><th>Código</th><th>Descripción</th><th>Total Piezas</th></tr>
+            </thead>
+            <tbody>
+              ${filasPzs}
+            </tbody>
+          </table>
         </div>
       `;
 
