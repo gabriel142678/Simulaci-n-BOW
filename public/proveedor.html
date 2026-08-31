@@ -3,69 +3,255 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Proveedor - Recepción de Órdenes</title>
+  <title>Proveedor - Gestión de Pedidos</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; max-width: 700px; margin: auto; background-color: #f4f6f8; }
-    .orden { border: 1px solid #0066cc; padding: 20px; margin-bottom: 20px; border-radius: 8px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    h2 { color: #1a252c; }
-    h3 { margin-top: 0; color: #0066cc; }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    th, td { border: 1px solid #e1e4e8; padding: 10px; text-align: left; }
-    th { background-color: #0066cc; color: white; }
-    tr:nth-child(even) { background-color: #f8fafc; }
-    .total-box { margin-top: 15px; font-size: 1.1em; font-weight: bold; color: #2d3748; }
-    
-    .btn-enviado { background-color: #28a745; color: white; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; }
-    .btn-enviado:hover { background-color: #218838; }
-    .btn-enviado:disabled { background-color: #6c757d; cursor: not-allowed; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background-color: #f7fafc;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      color: #1a202c;
+      font-size: 28px;
+      margin-bottom: 30px;
+    }
+
+    .pedidos-container {
+      width: 100%;
+      max-width: 650px;
+    }
+
+    .tarjeta-pedido {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      border-left: 6px solid #e2e8f0;
+    }
+
+    .tarjeta-pedido.recibido {
+      border-left-color: #d69e2e; /* Amarillento / Naranja para Recibido */
+    }
+
+    .tarjeta-pedido.despachado {
+      border-left-color: #38a169; /* Verde para En camino */
+    }
+
+    .header-pedido {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #edf2f7;
+      padding-bottom: 8px;
+    }
+
+    .titulo-orden {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2d3748;
+    }
+
+    .badge-zona {
+      background-color: #edf2f7;
+      color: #4a5568;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .cantidades-resumen {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2b6cb0;
+      margin-bottom: 15px;
+    }
+
+    .bloques-detalle {
+      background-color: #f8fafc;
+      border: 1px dashed #cbd5e0;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 18px;
+      font-size: 14px;
+      color: #4a5568;
+    }
+
+    .bloques-detalle ul {
+      margin: 5px 0 0 20px;
+      padding: 0;
+    }
+
+    .acciones-btn {
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-recibir {
+      background-color: #d69e2e;
+      color: white;
+    }
+    .btn-recibir:hover { background-color: #b7791f; }
+
+    .btn-despachar {
+      background-color: #38a169;
+      color: white;
+    }
+    .btn-despachar:hover { background-color: #2f855a; }
+
+    .btn-deshabilitado {
+      background-color: #cbd5e0 !important;
+      cursor: not-allowed;
+    }
+
+    .estado-texto-prov {
+      font-weight: bold;
+      margin-top: 10px;
+      font-size: 15px;
+    }
   </style>
 </head>
 <body>
-  <h2>Panel del Proveedor (Órdenes Recibidas)</h2>
-  <div id="lista-ordenes"></div>
+
+  <h2>Proveedor: Solicitudes de Almacén</h2>
+
+  <div class="pedidos-container" id="lista-pedidos"></div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
-    const contenedor = document.getElementById('lista-ordenes');
 
-    socket.on('orden_proveedor', (orden) => {
-      let filas = '';
-      orden.items.forEach(item => {
-        filas += `<tr>
-          <td>${item.codigo}</td>
-          <td>${item.descripcion}</td>
-          <td><strong>${item.cantidad}</strong></td>
-        </tr>`;
-      });
-
-      const htmlOrden = `
-        <div class="orden" id="orden-card-${orden.id}">
-          <h3>Orden #${orden.id} <small style="color:#718096;">(${orden.fecha})</small></h3>
-          <p><strong>Solicitud Almacén:</strong> ${orden.pindo} PINDO | ${orden.sanyo} SANYO</p>
-          <table>
-            <thead>
-              <tr><th>Código</th><th>Descripción</th><th>Cantidad a Enviar</th></tr>
-            </thead>
-            <tbody>${filas}</tbody>
-          </table>
-          <div class="total-box">TOTAL DE PIEZAS A DESPACHAR: ${orden.totalPiezas} unidades</div>
-          <button class="btn-enviado" id="btn-despachar-${orden.id}" onclick="marcarEnviado(${orden.id})">Marcar como Enviado</button>
-        </div>
-      `;
-      
-      // La orden más vieja queda arriba y las nuevas entran abajo
-      contenedor.innerHTML = contenedor.innerHTML + htmlOrden;
+    socket.on('cargar_pedidos_iniciales', (pedidos) => {
+      const contenedor = document.getElementById('lista-pedidos');
+      contenedor.innerHTML = '';
+      pedidos.forEach(orden => agregarTarjetaProveedor(orden));
     });
 
-    function marcarEnviado(idOrden) {
-      socket.emit('despachar_orden', idOrden);
-      const boton = document.getElementById(`btn-despachar-${idOrden}`);
-      if (boton) {
-        boton.disabled = true;
-        boton.innerText = "✓ Orden Despachada";
+    socket.on('nuevo_pedido_proveedor', (orden) => {
+      agregarTarjetaProveedor(orden, true);
+    });
+
+    function agregarTarjetaProveedor(orden, alInicio = false) {
+      const contenedor = document.getElementById('lista-pedidos');
+
+      let htmlBloques = '';
+      if (orden.bloques && orden.bloques.length > 0) {
+        orden.bloques.forEach(grupo => {
+          htmlBloques += `<strong>${grupo.producto}:</strong><ul>`;
+          grupo.bloques.forEach(b => { htmlBloques += `<li>${b}</li>`; });
+          htmlBloques += `</ul>`;
+        });
+      } else {
+        htmlBloques = '<em>Pedido personalizado / Sin bloque específico</em>';
+      }
+
+      let claseEstado = '';
+      let estadoTxt = 'Pendiente de confirmación';
+      let btnRecibirAttr = '';
+      let btnDespacharAttr = 'disabled class="btn-despachar btn-deshabilitado"';
+
+      if (orden.estado === 'Recibido') {
+        claseEstado = 'recibido';
+        estadoTxt = 'Pedido Recibido (En preparación)';
+        btnRecibirAttr = 'disabled class="btn-recibir btn-deshabilitado"';
+        btnDespacharAttr = 'class="btn-despachar"';
+      } else if (orden.estado === 'En Camino') {
+        claseEstado = 'despachado';
+        estadoTxt = 'Orden Despachada y En Camino';
+        btnRecibirAttr = 'disabled class="btn-recibir btn-deshabilitado"';
+        btnDespacharAttr = 'disabled class="btn-despachar btn-deshabilitado"';
+      }
+
+      const cardHTML = `
+        <div class="tarjeta-pedido ${claseEstado}" id="prov-orden-${orden.id}">
+          <div class="header-pedido">
+            <span class="titulo-orden">Orden #${orden.id}</span>
+            <span class="badge-zona">${orden.zona}</span>
+          </div>
+
+          <div class="cantidades-resumen">
+            PINDO: ${orden.pindo} unidad(es) | SAYO: ${orden.sanyo} unidad(es)
+          </div>
+
+          <div class="bloques-detalle">
+            ${htmlBloques}
+          </div>
+
+          <div class="acciones-btn">
+            <button id="btn-recibir-${orden.id}" ${btnRecibirAttr} onclick="marcarRecibido(${orden.id})">
+              1. Confirmar Recibido
+            </button>
+            <button id="btn-despachar-${orden.id}" ${btnDespacharAttr} onclick="marcarDespachado(${orden.id})">
+              2. Enviar / En Camino
+            </button>
+          </div>
+
+          <div class="estado-texto-prov" id="estado-prov-${orden.id}">${estadoTxt}</div>
+        </div>
+      `;
+
+      if (alInicio) {
+        contenedor.innerHTML = cardHTML + contenedor.innerHTML;
+      } else {
+        contenedor.innerHTML += cardHTML;
       }
     }
+
+    function marcarRecibido(id) {
+      socket.emit('pedido_recibido', id);
+    }
+
+    function marcarDespachado(id) {
+      socket.emit('despachar_pedido', id);
+    }
+
+    socket.on('orden_recibida_proveedor', (id) => {
+      const tarjeta = document.getElementById(`prov-orden-${id}`);
+      const btnRecibir = document.getElementById(`btn-recibir-${id}`);
+      const btnDespachar = document.getElementById(`btn-despachar-${id}`);
+      const estadoTxt = document.getElementById(`estado-prov-${id}`);
+
+      if (tarjeta) {
+        tarjeta.className = "tarjeta-pedido recibido";
+        btnRecibir.disabled = true;
+        btnRecibir.className = "btn-recibir btn-deshabilitado";
+        btnDespachar.disabled = false;
+        btnDespachar.className = "btn-despachar";
+        estadoTxt.innerText = "Pedido Recibido (En preparación)";
+      }
+    });
+
+    socket.on('orden_despachada_proveedor', (id) => {
+      const tarjeta = document.getElementById(`prov-orden-${id}`);
+      const btnDespachar = document.getElementById(`btn-despachar-${id}`);
+      const estadoTxt = document.getElementById(`estado-prov-${id}`);
+
+      if (tarjeta) {
+        tarjeta.className = "tarjeta-pedido despachado";
+        btnDespachar.disabled = true;
+        btnDespachar.className = "btn-despachar btn-deshabilitado";
+        estadoTxt.innerText = "Orden Despachada y En Camino";
+      }
+    });
   </script>
 </body>
 </html>
