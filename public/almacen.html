@@ -18,14 +18,40 @@
     h2 {
       color: #1a202c;
       font-size: 28px;
-      margin-bottom: 40px;
+      margin-bottom: 25px;
       text-align: center;
+    }
+
+    .selector-zona-container {
+      margin-bottom: 30px;
+      background-color: #f8fafc;
+      padding: 15px 25px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .selector-zona-container label {
+      font-weight: bold;
+      color: #2d3748;
+      font-size: 16px;
+    }
+
+    select {
+      padding: 10px 15px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e0;
+      outline: none;
+      background-color: white;
     }
 
     .grid-productos {
       display: flex;
       gap: 40px;
-      margin-bottom: 30px;
+      margin-bottom: 25px;
       justify-content: center;
       flex-wrap: wrap;
     }
@@ -63,10 +89,6 @@
       outline: none;
     }
 
-    input:focus {
-      border-color: #0056b3;
-    }
-
     button.btn-enviar {
       width: 100%;
       max-width: 500px;
@@ -78,19 +100,17 @@
       font-size: 18px;
       font-weight: bold;
       cursor: pointer;
-      margin-bottom: 50px;
+      margin-bottom: 40px;
       transition: background-color 0.2s;
     }
-    button.btn-enviar:hover {
-      background-color: #004494;
-    }
+    button.btn-enviar:hover { background-color: #004494; }
 
     .historial-container {
       background-color: #f1f4f9;
       padding: 30px;
       border-radius: 8px;
       width: 100%;
-      max-width: 600px;
+      max-width: 650px;
       box-sizing: border-box;
     }
 
@@ -104,41 +124,47 @@
     .item-historial {
       background: white;
       border: 1px solid #e2e8f0;
-      border-left: 5px solid #a0aec0;
+      border-left: 6px solid #a0aec0;
       padding: 18px;
       border-radius: 6px;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      font-size: 16px;
+      margin-bottom: 15px;
+    }
+
+    .item-historial.recibido {
+      border-left-color: #d69e2e; /* Naranja/Amarillo */
     }
 
     .item-historial.despachado {
-      border-left-color: #38a169;
+      border-left-color: #38a169; /* Verde */
+    }
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
     }
 
     .orden-texto {
       color: #1a202c;
       font-weight: bold;
-      margin-right: 8px;
-    }
-    
-    .orden-detalle {
-      color: #2d3748;
-      margin-right: auto;
     }
 
-    .estado-texto {
+    .estado-badge {
       font-weight: bold;
-      font-size: 16px;
+      font-size: 14px;
     }
 
-    .estado-pendiente {
-      color: #a0aec0;
-    }
+    .estado-pendiente { color: #a0aec0; }
+    .estado-recibido { color: #d69e2e; }
+    .estado-camino { color: #38a169; }
 
-    .estado-camino {
-      color: #38a169;
+    .bloques-lista-almacen {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #4a5568;
+      background-color: #f8fafc;
+      padding: 8px 12px;
+      border-radius: 4px;
     }
   </style>
 </head>
@@ -146,16 +172,27 @@
 
   <h2>Almacén: Enviar Pedido</h2>
 
+  <div class="selector-zona-container">
+    <label for="select-zona">Seleccionar Grupo / Zona:</label>
+    <select id="select-zona" onchange="actualizarPreseleccion()">
+      <option value="Personalizado">Personalizado</option>
+      <option value="Zona 1" selected>Zona 1</option>
+      <option value="Zona 2">Zona 2</option>
+      <option value="Zona 3">Zona 3</option>
+      <option value="Zona 4">Zona 4</option>
+    </select>
+  </div>
+
   <div class="grid-productos">
     <div class="producto-card">
-      <img id="img-pindo" src="Pindo.jpeg" onerror="probarVariaciones(this, 'Pindo')" alt="PINDO">
+      <img src="Pindo.jpeg" onerror="probarVariaciones(this, 'Pindo')" alt="PINDO">
       <label>Cantidad PINDO:</label>
-      <input type="number" id="pindo" value="0" min="0">
+      <input type="number" id="pindo" value="1" min="0">
     </div>
     <div class="producto-card">
-      <img id="img-sanyo" src="Sayo.jpeg" onerror="probarVariaciones(this, 'Sayo')" alt="SANYO">
-      <label>Cantidad SANYO:</label>
-      <input type="number" id="sanyo" value="0" min="0">
+      <img src="Sayo.jpeg" onerror="probarVariaciones(this, 'Sayo')" alt="SAYO">
+      <label>Cantidad SAYO:</label>
+      <input type="number" id="sanyo" value="1" min="0">
     </div>
   </div>
 
@@ -170,7 +207,6 @@
   <script>
     const socket = io();
 
-    // Prueba combinaciones comunes en caso de que varíe entre .jpg / .png / minúsculas
     function probarVariaciones(img, nombre) {
       const opciones = [
         `${nombre}.jpeg`, `${nombre}.jpg`, `${nombre}.png`,
@@ -183,42 +219,78 @@
       }
     }
 
+    function actualizarPreseleccion() {
+      const zona = document.getElementById('select-zona').value;
+      if (zona !== "Personalizado") {
+        document.getElementById('pindo').value = "1";
+        document.getElementById('sanyo').value = "1";
+      }
+    }
+
     function enviarPedido() {
       const pindo = document.getElementById('pindo').value;
       const sanyo = document.getElementById('sanyo').value;
+      const zona = document.getElementById('select-zona').value;
       
       if (pindo == 0 && sanyo == 0) {
         alert("Ingresa al menos un producto.");
         return;
       }
       
-      socket.emit('nuevo_pedido', { pindo, sanyo });
-      document.getElementById('pindo').value = "0";
-      document.getElementById('sanyo').value = "0";
+      socket.emit('nuevo_pedido', { pindo, sanyo, zona });
     }
 
     socket.on('orden_confirmada_almacen', (orden) => {
-      const contenedor = document.getElementById('historial-pedidos');
-      const itemHTML = `
-        <div class="item-historial" id="tarjeta-orden-${orden.id}">
-          <span class="orden-texto">Orden #${orden.id}</span>
-          <span class="orden-detalle">(${orden.pindo} PINDO, ${orden.sanyo} SANYO)</span>
-          <span class="estado-texto estado-pendiente" id="badge-status-${orden.id}">Esperando confirmación...</span>
-        </div>
-      `;
-      contenedor.innerHTML = itemHTML + contenedor.innerHTML;
+      agregarTarjetaAlmacen(orden, true);
+    });
+
+    socket.on('orden_recibida_almacen', (idOrden) => {
+      const tarjeta = document.getElementById(`almacen-orden-${idOrden}`);
+      const badge = document.getElementById(`badge-almacen-${idOrden}`);
+      if (tarjeta && badge) {
+        tarjeta.className = "item-historial recibido";
+        badge.innerText = "Proveedor recibió el pedido (En preparación)";
+        badge.className = "estado-badge estado-recibido";
+      }
     });
 
     socket.on('orden_despachada_almacen', (idOrden) => {
-      const tarjeta = document.getElementById(`tarjeta-orden-${idOrden}`);
-      const badge = document.getElementById(`badge-status-${idOrden}`);
-      
-      if (badge && tarjeta) {
-        tarjeta.classList.add('despachado');
+      const tarjeta = document.getElementById(`almacen-orden-${idOrden}`);
+      const badge = document.getElementById(`badge-almacen-${idOrden}`);
+      if (tarjeta && badge) {
+        tarjeta.className = "item-historial despachado";
         badge.innerText = `Orden #${idOrden} en camino`;
-        badge.className = "estado-texto estado-camino";
+        badge.className = "estado-badge estado-camino";
       }
     });
+
+    function agregarTarjetaAlmacen(orden, alInicio = false) {
+      const contenedor = document.getElementById('historial-pedidos');
+      
+      let htmlDetalle = '';
+      if (orden.bloques && orden.bloques.length > 0) {
+        orden.bloques.forEach(g => {
+          htmlDetalle += `<div><strong>${g.producto}:</strong> ${g.bloques.join(', ')}</div>`;
+        });
+      }
+
+      const itemHTML = `
+        <div class="item-historial" id="almacen-orden-${orden.id}">
+          <div class="item-header">
+            <span class="orden-texto">Orden #${orden.id} [${orden.zona}]</span>
+            <span class="estado-badge estado-pendiente" id="badge-almacen-${orden.id}">Esperando confirmación...</span>
+          </div>
+          <div><strong>Cantidades:</strong> ${orden.pindo} PINDO, ${orden.sanyo} SAYO</div>
+          ${htmlDetalle ? `<div class="bloques-lista-almacen">${htmlDetalle}</div>` : ''}
+        </div>
+      `;
+
+      if (alInicio) {
+        contenedor.innerHTML = itemHTML + contenedor.innerHTML;
+      } else {
+        contenedor.innerHTML += itemHTML;
+      }
+    }
   </script>
 </body>
 </html>
