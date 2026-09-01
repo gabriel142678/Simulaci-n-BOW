@@ -16,13 +16,12 @@
     }
 
     h2 { color: #1a202c; font-size: 28px; margin-bottom: 30px; }
-    .pedidos-container { width: 100%; max-width: 800px; }
+    .pedidos-container { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 25px; }
 
     .tarjeta-pedido {
       background: white;
       border-radius: 8px;
       padding: 24px;
-      margin-bottom: 25px;
       border: 1px solid #cbd5e0;
       box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06);
       border-left: 6px solid #a0aec0;
@@ -123,14 +122,16 @@
     socket.on('cargar_pedidos_iniciales', (pedidos) => {
       const contenedor = document.getElementById('lista-pedidos');
       contenedor.innerHTML = '';
+      // Se cargan en el orden natural del arreglo (1, 2, 3...)
       pedidos.forEach(orden => agregarTarjetaProveedor(orden));
     });
 
     socket.on('nuevo_pedido_proveedor', (orden) => {
-      agregarTarjetaProveedor(orden, true);
+      // Se agrega siempre al final para respetar la llegada
+      agregarTarjetaProveedor(orden);
     });
 
-    function agregarTarjetaProveedor(orden, alInicio = false) {
+    function agregarTarjetaProveedor(orden) {
       const contenedor = document.getElementById('lista-pedidos');
 
       let filasHTML = '';
@@ -207,11 +208,8 @@
         </div>
       `;
 
-      if (alInicio) {
-        contenedor.innerHTML = cardHTML + contenedor.innerHTML;
-      } else {
-        contenedor.innerHTML += cardHTML;
-      }
+      // Insertar al final del contenedor (orden cronológico 1, 2, 3...)
+      contenedor.innerHTML += cardHTML;
     }
 
     function marcarRecibido(id) { socket.emit('pedido_recibido', id); }
