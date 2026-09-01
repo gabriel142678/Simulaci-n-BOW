@@ -50,7 +50,7 @@
       font-weight: 600;
     }
 
-    /* Estilo de Tabla Exacto a la Imagen */
+    /* Estilo de la tabla de referencia */
     table.tabla-piezas {
       width: 100%;
       border-collapse: collapse;
@@ -59,7 +59,7 @@
     }
 
     table.tabla-piezas th {
-      background-color: #205493; /* Azul Oscuro de la foto */
+      background-color: #205493;
       color: white;
       text-align: center;
       padding: 10px 8px;
@@ -102,15 +102,10 @@
       font-size: 15px;
       font-weight: bold;
       cursor: pointer;
-      transition: background-color 0.2s;
     }
 
     .btn-recibir { background-color: #d69e2e; color: white; }
-    .btn-recibir:hover { background-color: #b7791f; }
-
     .btn-despachar { background-color: #38a169; color: white; }
-    .btn-despachar:hover { background-color: #2f855a; }
-
     .btn-deshabilitado { background-color: #cbd5e0 !important; cursor: not-allowed; }
 
     .estado-texto-prov { font-weight: bold; margin-top: 12px; font-size: 15px; }
@@ -152,7 +147,6 @@
           `;
         });
 
-        // Fila de Total General al final de la tabla
         filasHTML += `
           <tr class="fila-total">
             <td colspan="4" style="text-align: right; padding-right: 15px;">TOTAL PIEZAS:</td>
@@ -181,7 +175,7 @@
       const cardHTML = `
         <div class="tarjeta-pedido ${claseEstado}" id="prov-orden-${orden.id}">
           <div class="header-pedido">
-            <span class="titulo-orden">Orden de Piezas #${orden.id}</span>
+            <span class="titulo-orden">Orden #${orden.id}</span>
             <span class="badge-tipo">${orden.zona}</span>
           </div>
 
