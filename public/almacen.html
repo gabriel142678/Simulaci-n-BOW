@@ -3,227 +3,372 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Almacén - Crear Pedido</title>
+  <title>Almacén - Control de Pedidos</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background-color: #ffffff;
+      background-color: #f7fafc;
       margin: 0;
-      padding: 40px 20px;
+      padding: 30px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    h2 { color: #1a202c; font-size: 28px; margin-bottom: 25px; text-align: center; }
+    h2 { color: #1a202c; margin-bottom: 20px; }
 
-    .selector-zona-container {
-      margin-bottom: 30px;
-      background-color: #f8fafc;
-      padding: 15px 25px;
+    .grid-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    @media (max-width: 850px) {
+      .grid-container { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: white;
       border-radius: 8px;
+      padding: 20px;
+      border: 1px solid #cbd5e0;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    .panel-header {
+      font-size: 18px;
+      font-weight: bold;
+      color: #2b6cb0;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #ebf8ff;
+      padding-bottom: 8px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    label { font-size: 13px; font-weight: bold; color: #4a5568; }
+
+    select, input[type="number"], input[type="text"] {
+      padding: 10px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-primary { background-color: #3182ce; color: white; }
+    .btn-primary:hover { background-color: #2b6cb0; }
+
+    .btn-warning { background-color: #dd6b20; color: white; }
+    .btn-warning:hover { background-color: #c05621; }
+
+    .btn-danger { background-color: #e53e3e; color: white; }
+
+    .tabla-borrador {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      margin-bottom: 15px;
+    }
+
+    .tabla-borrador th, .tabla-borrador td {
       border: 1px solid #e2e8f0;
+      padding: 8px;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .tabla-borrador th { background-color: #edf2f7; }
+
+    .badge-sobrante {
+      background-color: #c6f6d5;
+      color: #22543d;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      display: inline-block;
+      margin-right: 5px;
+      margin-bottom: 5px;
+    }
+
+    .checkbox-reposicion {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 8px;
+      background: #fff5f5;
+      border: 1px solid #feb2b2;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 15px;
     }
 
-    .selector-zona-container label { font-weight: bold; color: #2d3748; font-size: 16px; }
-    select { padding: 10px 15px; font-size: 16px; border-radius: 6px; border: 1px solid #cbd5e0; outline: none; }
-
-    .grid-productos {
-      display: flex;
-      gap: 40px;
-      margin-bottom: 25px;
-      justify-content: center;
-      flex-wrap: wrap;
+    .tarjeta-pedido-almacen {
+      background: #f7fafc;
+      border: 1px solid #cbd5e0;
+      border-left: 5px solid #a0aec0;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 12px;
     }
 
-    .producto-card { width: 280px; display: flex; flex-direction: column; }
-    .producto-card img {
-      width: 100%; height: 180px; object-fit: cover; margin-bottom: 15px;
-      border-radius: 6px; border: 1px solid #e2e8f0; background-color: #f8fafc;
+    .tarjeta-pedido-almacen.reposicion {
+      border-left-color: #e53e3e;
+      background: #fff5f5;
     }
 
-    label { font-weight: 600; color: #4a5568; font-size: 14px; margin-bottom: 8px; }
-    input { width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 16px; box-sizing: border-box; outline: none; }
-
-    button.btn-enviar {
-      width: 100%; max-width: 500px; padding: 16px; background-color: #0056b3;
-      color: white; border: none; border-radius: 6px; font-size: 18px; font-weight: bold;
-      cursor: pointer; margin-bottom: 40px; transition: background-color 0.2s;
+    .tarjeta-pedido-almacen.en-camino {
+      border-left-color: #38a169;
     }
-    button.btn-enviar:hover { background-color: #004494; }
-
-    .historial-container {
-      background-color: #f1f4f9; padding: 30px; border-radius: 8px;
-      width: 100%; max-width: 750px; box-sizing: border-box;
-    }
-
-    .historial-container h3 { margin-top: 0; margin-bottom: 20px; color: #1a202c; font-size: 20px; }
-
-    .item-historial {
-      background: white; border: 1px solid #e2e8f0; border-left: 6px solid #a0aec0;
-      padding: 18px; border-radius: 6px; margin-bottom: 15px;
-    }
-
-    .item-historial.recibido { border-left-color: #d69e2e; }
-    .item-historial.despachado { border-left-color: #38a169; }
-
-    .item-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
-    .orden-texto { color: #1a202c; font-weight: bold; }
-
-    .estado-badge { font-weight: bold; font-size: 14px; }
-    .estado-pendiente { color: #a0aec0; }
-    .estado-recibido { color: #d69e2e; }
-    .estado-camino { color: #38a169; }
-
-    table.tabla-almacen {
-      width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px;
-    }
-    table.tabla-almacen th, table.tabla-almacen td {
-      border: 1px solid #e2e8f0; padding: 6px 8px; text-align: center;
-    }
-    table.tabla-almacen th { background-color: #f8fafc; color: #4a5568; }
   </style>
 </head>
 <body>
 
-  <h2>Almacén: Enviar Pedido</h2>
+  <h2>Almacén: Gestión de Pedidos e Inventario</h2>
 
-  <div class="selector-zona-container">
-    <label for="select-zona">Tipo de Solicitud:</label>
-    <select id="select-zona" onchange="actualizarPreseleccion()">
-      <option value="Pedido Normal" selected>Pedido Normal</option>
-      <option value="Zona 1">Zona 1</option>
-      <option value="Zona 2">Zona 2</option>
-      <option value="Zona 3">Zona 3</option>
-      <option value="Zona 4">Zona 4</option>
-    </select>
-  </div>
+  <div class="grid-container">
+    
+    <!-- PANEL IZQUIERDO: CREAR PEDIDO Y REGISTRAR SOBRANTE -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">1. Armar Pedido a Proveedor</div>
 
-  <div class="grid-productos">
-    <div class="producto-card">
-      <img src="Pindo.jpeg" onerror="probarVariaciones(this, 'Pindo')" alt="PINDO">
-      <label>Cantidad PINDO:</label>
-      <input type="number" id="pindo" value="0" min="0">
+        <div class="form-group">
+          <label>Seleccionar Pieza:</label>
+          <select id="select-pieza"></select>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <div class="form-group" style="flex: 1;">
+            <label>Cantidad:</label>
+            <input type="number" id="cant-pieza" min="1" value="1">
+          </div>
+          <button class="btn btn-primary" style="align-self: flex-end; height: 40px;" onclick="agregarPiezaBorrador()">
+            + Agregar al Pedido
+          </button>
+        </div>
+
+        <!-- TABLA TEMPORAL DEL PEDIDO -->
+        <table class="tabla-borrador">
+          <thead>
+            <tr>
+              <th>Pieza</th>
+              <th>Cant</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="body-borrador"></tbody>
+        </table>
+
+        <!-- OPCIÓN DE REPOSICIÓN -->
+        <div class="checkbox-reposicion">
+          <input type="checkbox" id="check-reposicion" onchange="toggleRefOrden()">
+          <label for="check-reposicion" style="color: #9b2c2c;">¿Es una Orden de Reposición (Prioritaria)?</label>
+        </div>
+
+        <div class="form-group" id="group-ref-orden" style="display: none;">
+          <label>Número u Orden de Referencia (Ej: Reposición Orden #2):</label>
+          <input type="text" id="ref-orden" placeholder="Ej. Orden #2 inconforme">
+        </div>
+
+        <button class="btn btn-warning" style="width: 100%; padding: 12px; font-size: 15px;" onclick="enviarPedidoFinal()">
+          🚀 Enviar Pedido a Proveedor
+        </button>
+      </div>
+
+      <!-- REGISTRO DE PIEZAS SOBRANTES EN ALMACÉN -->
+      <div class="panel" style="margin-top: 20px;">
+        <div class="panel-header" style="color: #dd6b20; border-bottom-color: #feebc8;">
+          2. Registrar Pieza Sobrante / Equivocada
+        </div>
+        <p style="font-size: 12px; color: #718096; margin-top: -10px;">
+          Si llegó una pieza equivocada, regístrala aquí. El sistema la descontará automáticamente del próximo pedido.
+        </p>
+
+        <div class="form-group">
+          <label>Pieza que llegó sobrante:</label>
+          <select id="select-sobrante"></select>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <input type="number" id="cant-sobrante" min="1" value="1" style="width: 100px;">
+          <button class="btn btn-warning" style="flex: 1;" onclick="registrarSobrante()">
+            Guardar en Stock de Almacén
+          </button>
+        </div>
+
+        <div style="margin-top: 15px;">
+          <label>Stock de Retención Actual:</label>
+          <div id="contenedor-sobrantes" style="margin-top: 5px;"></div>
+        </div>
+      </div>
     </div>
-    <div class="producto-card">
-      <img src="Sayo.jpeg" onerror="probarVariaciones(this, 'Sayo')" alt="SAYO">
-      <label>Cantidad SAYO:</label>
-      <input type="number" id="sanyo" value="0" min="0">
+
+    <!-- PANEL DERECHO: HISTORIAL DE PEDIDOS -->
+    <div class="panel">
+      <div class="panel-header" style="color: #2d3748; border-bottom-color: #edf2f7;">
+        3. Historial de Pedidos Realizados
+      </div>
+      <div id="lista-historial"></div>
     </div>
-  </div>
 
-  <button class="btn-enviar" onclick="enviarPedido()">Enviar Orden a Proveedor</button>
-
-  <div class="historial-container">
-    <h3>Historial de Pedidos Enviados</h3>
-    <div id="historial-pedidos"></div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
+    let catalogo = [];
+    let borradorPedido = [];
 
-    function probarVariaciones(img, nombre) {
-      const opciones = [
-        `${nombre}.jpeg`, `${nombre}.jpg`, `${nombre}.png`,
-        `${nombre.toLowerCase()}.jpeg`, `${nombre.toLowerCase()}.jpg`, `${nombre.toLowerCase()}.png`
-      ];
-      let idx = parseInt(img.getAttribute('data-try') || '0');
-      if (idx < opciones.length) {
-        img.setAttribute('data-try', idx + 1);
-        img.src = opciones[idx];
-      }
-    }
-
-    function actualizarPreseleccion() {
-      const zona = document.getElementById('select-zona').value;
-      if (zona !== "Pedido Normal") {
-        document.getElementById('pindo').value = "1";
-        document.getElementById('sanyo').value = "1";
-      }
-    }
-
-    function enviarPedido() {
-      const pindo = document.getElementById('pindo').value;
-      const sanyo = document.getElementById('sanyo').value;
-      const zona = document.getElementById('select-zona').value;
+    socket.on('cargar_catalogo', (datosCatalogo) => {
+      catalogo = datosCatalogo;
+      const selectPieza = document.getElementById('select-pieza');
+      const selectSobrante = document.getElementById('select-sobrante');
       
-      if (pindo == 0 && sanyo == 0) {
-        alert("Ingresa al menos un producto.");
-        return;
+      selectPieza.innerHTML = '';
+      selectSobrante.innerHTML = '';
+
+      catalogo.forEach(p => {
+        const option = `<option value="${p.codigo}">${p.codigo} - ${p.descripcion}</option>`;
+        selectPieza.innerHTML += option;
+        selectSobrante.innerHTML += option;
+      });
+    });
+
+    socket.on('actualizar_sobrantes', (inventarioSobrante) => {
+      const contenedor = document.getElementById('contenedor-sobrantes');
+      contenedor.innerHTML = '';
+
+      let haySobrantes = false;
+      for (const [codigo, cantidad] of Object.entries(inventarioSobrante)) {
+        if (cantidad > 0) {
+          haySobrantes = true;
+          contenedor.innerHTML += `<span class="badge-sobrante">${codigo}: ${cantidad} und</span>`;
+        }
       }
-      
-      socket.emit('nuevo_pedido', { pindo, sanyo, zona });
+
+      if (!haySobrantes) {
+        contenedor.innerHTML = '<span style="font-size:12px; color:#a0aec0;">Sin piezas retenidas.</span>';
+      }
+    });
+
+    socket.on('actualizar_lista_pedidos', (pedidos) => {
+      const historial = document.getElementById('lista-historial');
+      historial.innerHTML = '';
+
+      pedidos.forEach(p => {
+        let esRepo = p.esReposicion ? 'reposicion' : '';
+        let enCamino = p.estado === 'En Camino' ? 'en-camino' : '';
+        
+        let badgeEstado = `<b style="color:#d69e2e;">${p.estado}</b>`;
+        if (p.estado === 'En Camino') badgeEstado = `<b style="color:#38a169;">En Camino 🚚</b>`;
+        if (p.estado === 'Recibido') badgeEstado = `<b style="color:#3182ce;">En Preparación 📦</b>`;
+
+        let tagRepo = p.esReposicion ? `<span style="background:#e53e3e; color:white; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">REPOSICIÓN</span>` : '';
+
+        let resumenPiezas = p.piezas.map(item => `${item.descripcion} (x${item.cantidadOriginal})`).join('<br>');
+
+        historial.innerHTML += `
+          <div class="tarjeta-pedido-almacen ${esRepo} ${enCamino}">
+            <div style="display:flex; justify-between; align-items:center; margin-bottom: 5px;">
+              <strong>Orden #${p.id} ${tagRepo}</strong>
+              <span style="font-size:12px;">${badgeEstado}</span>
+            </div>
+            <div style="font-size:12px; color:#4a5568; margin-bottom: 5px;">${resumenPiezas}</div>
+            ${p.ordenRef ? `<div style="font-size:11px; color:#c53030;"><strong>Ref:</strong> ${p.ordenRef}</div>` : ''}
+          </div>
+        `;
+      });
+    });
+
+    function toggleRefOrden() {
+      const check = document.getElementById('check-reposicion').checked;
+      document.getElementById('group-ref-orden').style.display = check ? 'flex' : 'none';
     }
 
-    socket.on('orden_confirmada_almacen', (orden) => {
-      agregarTarjetaAlmacen(orden, true);
-    });
+    function agregarPiezaBorrador() {
+      const cod = document.getElementById('select-pieza').value;
+      const cant = parseInt(document.getElementById('cant-pieza').value) || 1;
+      const piezaObj = catalogo.find(p => p.codigo === cod);
 
-    socket.on('orden_recibida_almacen', (idOrden) => {
-      const tarjeta = document.getElementById(`almacen-orden-${idOrden}`);
-      const badge = document.getElementById(`badge-almacen-${idOrden}`);
-      if (tarjeta && badge) {
-        tarjeta.className = "item-historial recibido";
-        badge.innerText = "Proveedor confirmó recepción (En preparación)";
-        badge.className = "estado-badge estado-recibido";
-      }
-    });
+      if (!piezaObj) return;
 
-    socket.on('orden_despachada_almacen', (idOrden) => {
-      const tarjeta = document.getElementById(`almacen-orden-${idOrden}`);
-      const badge = document.getElementById(`badge-almacen-${idOrden}`);
-      if (tarjeta && badge) {
-        tarjeta.className = "item-historial despachado";
-        badge.innerText = `Orden #${idOrden} en camino`;
-        badge.className = "estado-badge estado-camino";
-      }
-    });
-
-    function agregarTarjetaAlmacen(orden, alInicio = false) {
-      const contenedor = document.getElementById('historial-pedidos');
-
-      let filasPzs = '';
-      if (orden.piezas && orden.piezas.length > 0) {
-        orden.piezas.forEach(p => {
-          filasPzs += `
-            <tr>
-              <td>${p.codigo}</td>
-              <td style="text-align:left;">${p.descripcion}</td>
-              <td><strong>${p.cantidadTotal}</strong></td>
-            </tr>
-          `;
+      const existe = borradorPedido.find(p => p.codigo === cod);
+      if (existe) {
+        existe.cantidad += cant;
+      } else {
+        borradorPedido.push({
+          codigo: piezaObj.codigo,
+          descripcion: piezaObj.descripcion,
+          cantidad: cant
         });
       }
 
-      const itemHTML = `
-        <div class="item-historial" id="almacen-orden-${orden.id}">
-          <div class="item-header">
-            <span class="orden-texto">Orden #${orden.id} [${orden.zona}]</span>
-            <span class="estado-badge estado-pendiente" id="badge-almacen-${orden.id}">Esperando confirmación...</span>
-          </div>
-          <div style="font-size:13px; color:#4a5568; margin-bottom: 8px;">
-            <strong>Solicitud Interna:</strong> ${orden.pindo} PINDO, ${orden.sanyo} SAYO | <strong>Total Piezas:</strong> ${orden.totalPiezas}
-          </div>
-          <table class="tabla-almacen">
-            <thead>
-              <tr><th>Código</th><th>Descripción</th><th>Total Piezas</th></tr>
-            </thead>
-            <tbody>
-              ${filasPzs}
-            </tbody>
-          </table>
-        </div>
-      `;
+      renderBorrador();
+    }
 
-      if (alInicio) {
-        contenedor.innerHTML = itemHTML + contenedor.innerHTML;
-      } else {
-        contenedor.innerHTML += itemHTML;
+    function renderBorrador() {
+      const body = document.getElementById('body-borrador');
+      body.innerHTML = '';
+
+      borradorPedido.forEach((item, index) => {
+        body.innerHTML += `
+          <tr>
+            <td>${item.descripcion}</td>
+            <td><strong>${item.cantidad}</strong></td>
+            <td><button style="color:red; border:none; background:none; cursor:pointer;" onclick="eliminarDelBorrador(${index})">❌</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    function eliminarDelBorrador(index) {
+      borradorPedido.splice(index, 1);
+      renderBorrador();
+    }
+
+    function enviarPedidoFinal() {
+      if (borradorPedido.length === 0) {
+        alert('Agrega al menos una pieza al pedido.');
+        return;
       }
+
+      const esReposicion = document.getElementById('check-reposicion').checked;
+      const ordenRef = document.getElementById('ref-orden').value;
+
+      socket.emit('nuevo_pedido_custom', {
+        piezas: borradorPedido,
+        esReposicion: esReposicion,
+        ordenRef: ordenRef
+      });
+
+      // Limpiar borrador
+      borradorPedido = [];
+      renderBorrador();
+      document.getElementById('check-reposicion').checked = false;
+      document.getElementById('ref-orden').value = '';
+      toggleRefOrden();
+    }
+
+    function registrarSobrante() {
+      const cod = document.getElementById('select-sobrante').value;
+      const cant = parseInt(document.getElementById('cant-sobrante').value) || 1;
+      socket.emit('registrar_sobrante', { codigo: cod, cantidad: cant });
     }
   </script>
 </body>
