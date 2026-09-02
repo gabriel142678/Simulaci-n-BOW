@@ -46,13 +46,6 @@
       box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.3);
     }
 
-    /* ALERTA ROJA PARA REPOSICIONES CON PRIORIDAD */
-    .tarjeta-pedido.es-reposicion {
-      border-color: #e53e3e !important;
-      border-left-color: #e53e3e !important;
-      background-color: #fff5f5;
-    }
-
     .tarjeta-pedido.recibido { border-left-color: #d69e2e; }
     .tarjeta-pedido.despachado { border-left-color: #38a169; }
 
@@ -66,23 +59,16 @@
     }
 
     .titulo-orden { font-size: 22px; font-weight: bold; color: #1a365d; }
-    
-    .badge-reposicion {
-      background-color: #e53e3e;
+    .badge-tipo {
+      background-color: #2b6cb0;
       color: white;
-      padding: 6px 14px;
+      padding: 4px 12px;
       border-radius: 12px;
       font-size: 14px;
-      font-weight: bold;
-      animation: pulso 1.5s infinite;
+      font-weight: 600;
     }
 
-    @keyframes pulso {
-      0% { opacity: 1; }
-      50% { opacity: 0.6; }
-      100% { opacity: 1; }
-    }
-
+    /* Tabla con únicamente 2 columnas */
     table.tabla-piezas {
       width: 100%;
       border-collapse: collapse;
@@ -102,11 +88,15 @@
       border: 1px solid #cbd5e0;
       padding: 12px 15px;
       color: #2d3748;
+      transition: background-color 0.15s ease;
     }
 
     table.tabla-piezas td.col-desc { text-align: left; }
     table.tabla-piezas td.col-cant { text-align: center; font-weight: bold; font-size: 16px; }
 
+    table.tabla-piezas tr:nth-child(even) { background-color: #f8fafc; }
+
+    /* RESALTADO DE LA FILA SELECCIONADA POR TECLADO */
     table.tabla-piezas tr.fila-seleccionada td {
       background-color: #fef08a !important;
       color: #742a2a !important;
@@ -115,17 +105,15 @@
       border-bottom: 2px solid #d69e2e !important;
     }
 
+    table.tabla-piezas tr.fila-total {
+      font-weight: bold;
+      background-color: #edf2f7;
+    }
+
     table.tabla-piezas tr.fila-total td {
       border-top: 2px solid #205493;
       font-size: 16px;
-      font-weight: bold;
-    }
-
-    .descuento-nota {
-      font-size: 12px;
-      color: #c53030;
-      font-weight: bold;
-      display: block;
+      padding: 12px 15px;
     }
 
     .navegacion-piezas {
@@ -150,6 +138,7 @@
       font-weight: bold;
       cursor: pointer;
     }
+    .btn-nav:hover { background-color: #2d3748; }
 
     .acciones-btn { display: flex; gap: 15px; margin-top: 15px; }
 
@@ -185,26 +174,21 @@
     let ordenSeleccionadaId = null;
 
     socket.on('cargar_pedidos_iniciales', (pedidos) => {
-      renderizarTodasLasOrdenes(pedidos);
-    });
-
-    socket.on('actualizar_lista_pedidos', (pedidos) => {
-      renderizarTodasLasOrdenes(pedidos);
-    });
-
-    socket.on('nuevo_pedido_proveedor', () => {
-      // El servidor emitirá actualizar_lista_pedidos
-    });
-
-    function renderizarTodasLasOrdenes(pedidos) {
       const contenedor = document.getElementById('lista-pedidos');
       contenedor.innerHTML = '';
       pedidos.forEach(orden => agregarTarjetaProveedor(orden));
       
-      if (pedidos.length > 0 && !ordenSeleccionadaId) {
+      if (pedidos.length > 0) {
         activarOrden(pedidos[0].id);
       }
-    }
+    });
+
+    socket.on('nuevo_pedido_proveedor', (orden) => {
+      agregarTarjetaProveedor(orden);
+      if (!ordenSeleccionadaId) {
+        activarOrden(orden.id);
+      }
+    });
 
     function activarOrden(idOrden) {
       ordenSeleccionadaId = idOrden;
@@ -223,17 +207,9 @@
       let filasHTML = '';
       if (orden.piezas && orden.piezas.length > 0) {
         orden.piezas.forEach((p, idx) => {
-          let notaDescuento = '';
-          if (p.cantidadDescontada > 0) {
-            notaDescuento = `<span class="descuento-nota">(-${p.cantidadDescontada} desc. por stock en almacén)</span>`;
-          }
-
           filasHTML += `
             <tr class="fila-pieza" data-idx="${idx}">
-              <td class="col-desc">
-                ${p.descripcion}
-                ${notaDescuento}
-              </td>
+              <td class="col-desc">${p.descripcion}</td>
               <td class="col-cant">${p.cantidadTotal}</td>
             </tr>
           `;
@@ -241,27 +217,25 @@
 
         filasHTML += `
           <tr class="fila-total">
-            <td style="text-align: right; padding-right: 15px;">TOTAL PIEZAS A ENVIAR:</td>
+            <td style="text-align: right; padding-right: 15px;">TOTAL PIEZAS:</td>
             <td class="col-cant">${orden.totalPiezas}</td>
           </tr>
         `;
       }
 
-      let claseEstado = orden.esReposicion ? 'es-reposicion' : '';
-      let badgeTag = orden.esReposicion ? `<span class="badge-reposicion">🚨 REPOSICIÓN PRIORITARIA</span>` : `<span style="background:#2b6cb0; color:white; padding:4px 12px; border-radius:12px; font-size:13px;">Estándar</span>`;
-
+      let claseEstado = '';
       let estadoTxt = 'Pendiente de confirmación';
       let btnRecibirAttr = 'class="btn-accion btn-recibir"';
       let btnDespacharAttr = 'disabled class="btn-accion btn-despachar btn-deshabilitado"';
 
       if (orden.estado === 'Recibido') {
-        claseEstado += ' recibido';
+        claseEstado = 'recibido';
         estadoTxt = 'Pedido Recibido (En preparación)';
         btnRecibirAttr = 'disabled class="btn-accion btn-recibir btn-deshabilitado"';
         btnDespacharAttr = 'class="btn-accion btn-despachar"';
       } else if (orden.estado === 'En Camino') {
-        claseEstado += ' despachado';
-        estadoTxt = 'Orden Despachada y En Camino 🚚';
+        claseEstado = 'despachado';
+        estadoTxt = 'Orden Despachada y En Camino';
         btnRecibirAttr = 'disabled class="btn-accion btn-recibir btn-deshabilitado"';
         btnDespacharAttr = 'disabled class="btn-accion btn-despachar btn-deshabilitado"';
       }
@@ -269,11 +243,8 @@
       const cardHTML = `
         <div class="tarjeta-pedido ${claseEstado}" id="prov-orden-${orden.id}" onclick="activarOrden(${orden.id})">
           <div class="header-pedido">
-            <div>
-              <span class="titulo-orden">Orden #${orden.id}</span>
-              ${orden.ordenRef ? `<div style="font-size:13px; color:#e53e3e; font-weight:bold;">Ref: ${orden.ordenRef}</div>` : ''}
-            </div>
-            ${badgeTag}
+            <span class="titulo-orden">Orden #${orden.id}</span>
+            <span class="badge-tipo">${orden.zona}</span>
           </div>
 
           <div class="navegacion-piezas">
@@ -340,15 +311,48 @@
     window.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        if (ordenSeleccionadaId) moverSeleccion(ordenSeleccionadaId, 1);
+        if (ordenSeleccionadaId) {
+          moverSeleccion(ordenSeleccionadaId, 1);
+        }
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        if (ordenSeleccionadaId) moverSeleccion(ordenSeleccionadaId, -1);
+        if (ordenSeleccionadaId) {
+          moverSeleccion(ordenSeleccionadaId, -1);
+        }
       }
     });
 
     function marcarRecibido(id) { socket.emit('pedido_recibido', id); }
     function marcarDespachado(id) { socket.emit('despachar_pedido', id); }
+
+    socket.on('orden_recibida_proveedor', (id) => {
+      const tarjeta = document.getElementById(`prov-orden-${id}`);
+      const btnRecibir = document.getElementById(`btn-recibir-${id}`);
+      const btnDespachar = document.getElementById(`btn-despachar-${id}`);
+      const estadoTxt = document.getElementById(`estado-prov-${id}`);
+
+      if (tarjeta) {
+        tarjeta.className = "tarjeta-pedido recibido orden-activa";
+        btnRecibir.disabled = true;
+        btnRecibir.className = "btn-accion btn-recibir btn-deshabilitado";
+        btnDespachar.disabled = false;
+        btnDespachar.className = "btn-accion btn-despachar";
+        estadoTxt.innerText = "Pedido Recibido (En preparación)";
+      }
+    });
+
+    socket.on('orden_despachada_proveedor', (id) => {
+      const tarjeta = document.getElementById(`prov-orden-${id}`);
+      const btnDespachar = document.getElementById(`btn-despachar-${id}`);
+      const estadoTxt = document.getElementById(`estado-prov-${id}`);
+
+      if (tarjeta) {
+        tarjeta.className = "tarjeta-pedido despachado orden-activa";
+        btnDespachar.disabled = true;
+        btnDespachar.className = "btn-accion btn-despachar btn-deshabilitado";
+        estadoTxt.innerText = "Orden Despachada y En Camino";
+      }
+    });
   </script>
 </body>
 </html>
