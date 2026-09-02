@@ -38,7 +38,7 @@
       box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06);
       border-left: 6px solid #a0aec0;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, opacity 0.5s ease;
     }
 
     .tarjeta-pedido.orden-activa {
@@ -68,7 +68,6 @@
       font-weight: 600;
     }
 
-    /* Tabla con únicamente 2 columnas */
     table.tabla-piezas {
       width: 100%;
       border-collapse: collapse;
@@ -96,7 +95,6 @@
 
     table.tabla-piezas tr:nth-child(even) { background-color: #f8fafc; }
 
-    /* RESALTADO DE LA FILA SELECCIONADA POR TECLADO */
     table.tabla-piezas tr.fila-seleccionada td {
       background-color: #fef08a !important;
       color: #742a2a !important;
@@ -176,7 +174,7 @@
     socket.on('cargar_pedidos_iniciales', (pedidos) => {
       const contenedor = document.getElementById('lista-pedidos');
       contenedor.innerHTML = '';
-      pedidos.forEach(orden => agregarTarjetaProveedor(orden));
+      pedidos.forEach(orden => agregarTarjetaProveedor(orden, false));
       
       if (pedidos.length > 0) {
         activarOrden(pedidos[0].id);
@@ -184,9 +182,28 @@
     });
 
     socket.on('nuevo_pedido_proveedor', (orden) => {
-      agregarTarjetaProveedor(orden);
+      agregarTarjetaProveedor(orden, true);
       if (!ordenSeleccionadaId) {
         activarOrden(orden.id);
+      }
+    });
+
+    socket.on('eliminar_pedido', (idOrden) => {
+      const tarjeta = document.getElementById(`prov-orden-${idOrden}`);
+      if (tarjeta) {
+        tarjeta.style.opacity = '0';
+        setTimeout(() => {
+          tarjeta.remove();
+          if (ordenSeleccionadaId === idOrden) {
+            const restante = document.querySelector('.tarjeta-pedido');
+            if (restante) {
+              const idRestante = parseInt(restante.id.replace('prov-orden-', ''));
+              activarOrden(idRestante);
+            } else {
+              ordenSeleccionadaId = null;
+            }
+          }
+        }, 500);
       }
     });
 
@@ -201,7 +218,7 @@
       }
     }
 
-    function agregarTarjetaProveedor(orden) {
+    function agregarTarjetaProveedor(orden, alInicio = true) {
       const contenedor = document.getElementById('lista-pedidos');
 
       let filasHTML = '';
@@ -235,7 +252,7 @@
         btnDespacharAttr = 'class="btn-accion btn-despachar"';
       } else if (orden.estado === 'En Camino') {
         claseEstado = 'despachado';
-        estadoTxt = 'Orden Despachada y En Camino';
+        estadoTxt = 'Orden Despachada y En Camino (Se borrará en 10s)';
         btnRecibirAttr = 'disabled class="btn-accion btn-recibir btn-deshabilitado"';
         btnDespacharAttr = 'disabled class="btn-accion btn-despachar btn-deshabilitado"';
       }
@@ -243,7 +260,7 @@
       const cardHTML = `
         <div class="tarjeta-pedido ${claseEstado}" id="prov-orden-${orden.id}" onclick="activarOrden(${orden.id})">
           <div class="header-pedido">
-            <span class="titulo-orden">Orden #${orden.id}</span>
+            <span class="titulo-orden">${orden.nombre}</span>
             <span class="badge-tipo">${orden.zona}</span>
           </div>
 
@@ -280,7 +297,11 @@
         </div>
       `;
 
-      contenedor.innerHTML += cardHTML;
+      if (alInicio) {
+        contenedor.innerHTML = cardHTML + contenedor.innerHTML;
+      } else {
+        contenedor.innerHTML += cardHTML;
+      }
     }
 
     function moverSeleccion(idOrden, direccion) {
@@ -350,7 +371,7 @@
         tarjeta.className = "tarjeta-pedido despachado orden-activa";
         btnDespachar.disabled = true;
         btnDespachar.className = "btn-accion btn-despachar btn-deshabilitado";
-        estadoTxt.innerText = "Orden Despachada y En Camino";
+        estadoTxt.innerText = "Orden Despachada y En Camino (Se borrará en 10s)";
       }
     });
   </script>
