@@ -68,38 +68,37 @@
       font-weight: 600;
     }
 
-    /* Estilo de la tabla de referencia */
+    /* Tabla con únicamente 2 columnas */
     table.tabla-piezas {
       width: 100%;
       border-collapse: collapse;
       margin: 15px 0;
-      font-size: 14px;
+      font-size: 15px;
     }
 
     table.tabla-piezas th {
       background-color: #205493;
       color: white;
-      text-align: center;
-      padding: 10px 8px;
+      padding: 12px 15px;
       font-weight: bold;
       border: 1px solid #1a365d;
     }
 
     table.tabla-piezas td {
       border: 1px solid #cbd5e0;
-      padding: 10px 8px;
-      text-align: center;
+      padding: 12px 15px;
       color: #2d3748;
       transition: background-color 0.15s ease;
     }
 
     table.tabla-piezas td.col-desc { text-align: left; }
+    table.tabla-piezas td.col-cant { text-align: center; font-weight: bold; font-size: 16px; }
 
     table.tabla-piezas tr:nth-child(even) { background-color: #f8fafc; }
 
-    /* ESTILO DE RESALTADO PARA LA FILA SELECCIONADA CON LA FLECHA ABAJO */
+    /* RESALTADO DE LA FILA SELECCIONADA POR TECLADO */
     table.tabla-piezas tr.fila-seleccionada td {
-      background-color: #fef08a !important; /* Amarillo fosforescente suave */
+      background-color: #fef08a !important;
       color: #742a2a !important;
       font-weight: bold;
       border-top: 2px solid #d69e2e !important;
@@ -113,7 +112,8 @@
 
     table.tabla-piezas tr.fila-total td {
       border-top: 2px solid #205493;
-      font-size: 15px;
+      font-size: 16px;
+      padding: 12px 15px;
     }
 
     .navegacion-piezas {
@@ -178,7 +178,6 @@
       contenedor.innerHTML = '';
       pedidos.forEach(orden => agregarTarjetaProveedor(orden));
       
-      // Seleccionar automáticamente la primera orden para el teclado
       if (pedidos.length > 0) {
         activarOrden(pedidos[0].id);
       }
@@ -210,19 +209,16 @@
         orden.piezas.forEach((p, idx) => {
           filasHTML += `
             <tr class="fila-pieza" data-idx="${idx}">
-              <td>${p.codigo}</td>
-              <td>${p.color}</td>
-              <td>${p.pines}</td>
               <td class="col-desc">${p.descripcion}</td>
-              <td style="font-weight: bold;">${p.cantidadTotal}</td>
+              <td class="col-cant">${p.cantidadTotal}</td>
             </tr>
           `;
         });
 
         filasHTML += `
           <tr class="fila-total">
-            <td colspan="4" style="text-align: right; padding-right: 15px;">TOTAL PIEZAS:</td>
-            <td>${orden.totalPiezas}</td>
+            <td style="text-align: right; padding-right: 15px;">TOTAL PIEZAS:</td>
+            <td class="col-cant">${orden.totalPiezas}</td>
           </tr>
         `;
       }
@@ -262,11 +258,8 @@
           <table class="tabla-piezas">
             <thead>
               <tr>
-                <th>Código Pieza</th>
-                <th>Color</th>
-                <th>Pines / Tamaño</th>
-                <th>Descripción Componente</th>
-                <th>Cantidad Total</th>
+                <th style="text-align: left;">Descripción Componente</th>
+                <th style="width: 140px;">Cantidad</th>
               </tr>
             </thead>
             <tbody>
@@ -315,7 +308,6 @@
       filas[nuevoIdx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // Escuchador Global de Teclas (Funciona siempre)
     window.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
