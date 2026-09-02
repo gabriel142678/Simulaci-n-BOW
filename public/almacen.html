@@ -17,19 +17,25 @@
 
     h2 { color: #1a202c; font-size: 28px; margin-bottom: 25px; text-align: center; }
 
-    .selector-zona-container {
-      margin-bottom: 30px;
+    .formulario-container {
       background-color: #f8fafc;
-      padding: 15px 25px;
+      padding: 20px 30px;
       border-radius: 8px;
       border: 1px solid #e2e8f0;
+      margin-bottom: 30px;
+      width: 100%;
+      max-width: 500px;
+      box-sizing: border-box;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       gap: 15px;
     }
 
-    .selector-zona-container label { font-weight: bold; color: #2d3748; font-size: 16px; }
-    select { padding: 10px 15px; font-size: 16px; border-radius: 6px; border: 1px solid #cbd5e0; outline: none; }
+    .campo-form { display: flex; flex-direction: column; gap: 6px; }
+    .campo-form label { font-weight: bold; color: #2d3748; font-size: 15px; }
+    .campo-form input, .campo-form select { 
+      padding: 10px 12px; font-size: 15px; border-radius: 6px; border: 1px solid #cbd5e0; outline: none; 
+    }
 
     .grid-productos {
       display: flex;
@@ -65,13 +71,14 @@
     .item-historial {
       background: white; border: 1px solid #e2e8f0; border-left: 6px solid #a0aec0;
       padding: 18px; border-radius: 6px; margin-bottom: 15px;
+      transition: opacity 0.5s ease;
     }
 
     .item-historial.recibido { border-left-color: #d69e2e; }
     .item-historial.despachado { border-left-color: #38a169; }
 
     .item-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
-    .orden-texto { color: #1a202c; font-weight: bold; }
+    .orden-texto { color: #1a202c; font-weight: bold; font-size: 17px; }
 
     .estado-badge { font-weight: bold; font-size: 14px; }
     .estado-pendiente { color: #a0aec0; }
@@ -91,15 +98,22 @@
 
   <h2>Almacén: Enviar Pedido</h2>
 
-  <div class="selector-zona-container">
-    <label for="select-zona">Tipo de Solicitud:</label>
-    <select id="select-zona" onchange="actualizarPreseleccion()">
-      <option value="Pedido Normal" selected>Pedido Normal</option>
-      <option value="Zona 1">Zona 1</option>
-      <option value="Zona 2">Zona 2</option>
-      <option value="Zona 3">Zona 3</option>
-      <option value="Zona 4">Zona 4</option>
-    </select>
+  <div class="formulario-container">
+    <div class="campo-form">
+      <label for="nombre-pedido">Nombre / Identificador del Pedido:</label>
+      <input type="text" id="nombre-pedido" placeholder="Ej. Lote Planta A, Pedido Urgente..." autofocus>
+    </div>
+    
+    <div class="campo-form">
+      <label for="select-zona">Tipo de Solicitud:</label>
+      <select id="select-zona" onchange="actualizarPreseleccion()">
+        <option value="Pedido Normal" selected>Pedido Normal</option>
+        <option value="Zona 1">Zona 1</option>
+        <option value="Zona 2">Zona 2</option>
+        <option value="Zona 3">Zona 3</option>
+        <option value="Zona 4">Zona 4</option>
+      </select>
+    </div>
   </div>
 
   <div class="grid-productos">
@@ -147,6 +161,7 @@
     }
 
     function enviarPedido() {
+      const nombrePedido = document.getElementById('nombre-pedido').value;
       const pindo = document.getElementById('pindo').value;
       const sanyo = document.getElementById('sanyo').value;
       const zona = document.getElementById('select-zona').value;
@@ -156,8 +171,15 @@
         return;
       }
       
-      socket.emit('nuevo_pedido', { pindo, sanyo, zona });
+      socket.emit('nuevo_pedido', { nombrePedido, pindo, sanyo, zona });
+      document.getElementById('nombre-pedido').value = '';
     }
+
+    socket.on('cargar_pedidos_iniciales', (pedidos) => {
+      const contenedor = document.getElementById('historial-pedidos');
+      contenedor.innerHTML = '';
+      pedidos.forEach(orden => agregarTarjetaAlmacen(orden, false));
+    });
 
     socket.on('orden_confirmada_almacen', (orden) => {
       agregarTarjetaAlmacen(orden, true);
@@ -178,12 +200,20 @@
       const badge = document.getElementById(`badge-almacen-${idOrden}`);
       if (tarjeta && badge) {
         tarjeta.className = "item-historial despachado";
-        badge.innerText = `Orden #${idOrden} en camino`;
+        badge.innerText = "En camino (Se eliminará en 10s)";
         badge.className = "estado-badge estado-camino";
       }
     });
 
-    function agregarTarjetaAlmacen(orden, alInicio = false) {
+    socket.on('eliminar_pedido', (idOrden) => {
+      const tarjeta = document.getElementById(`almacen-orden-${idOrden}`);
+      if (tarjeta) {
+        tarjeta.style.opacity = '0';
+        setTimeout(() => tarjeta.remove(), 500);
+      }
+    });
+
+    function agregarTarjetaAlmacen(orden, alInicio = true) {
       const contenedor = document.getElementById('historial-pedidos');
 
       let filasPzs = '';
@@ -199,11 +229,25 @@
         });
       }
 
+      let claseEstado = '';
+      let badgeTxt = 'Esperando confirmación...';
+      let badgeClase = 'estado-badge estado-pendiente';
+
+      if (orden.estado === 'Recibido') {
+        claseEstado = 'recibido';
+        badgeTxt = 'Proveedor confirmó recepción (En preparación)';
+        badgeClase = 'estado-badge estado-recibido';
+      } else if (orden.estado === 'En Camino') {
+        claseEstado = 'despachado';
+        badgeTxt = 'En camino (Se eliminará en 10s)';
+        badgeClase = 'estado-badge estado-camino';
+      }
+
       const itemHTML = `
-        <div class="item-historial" id="almacen-orden-${orden.id}">
+        <div class="item-historial ${claseEstado}" id="almacen-orden-${orden.id}">
           <div class="item-header">
-            <span class="orden-texto">Orden #${orden.id} [${orden.zona}]</span>
-            <span class="estado-badge estado-pendiente" id="badge-almacen-${orden.id}">Esperando confirmación...</span>
+            <span class="orden-texto">${orden.nombre} [${orden.zona}]</span>
+            <span class="${badgeClase}" id="badge-almacen-${orden.id}">${badgeTxt}</span>
           </div>
           <div style="font-size:13px; color:#4a5568; margin-bottom: 8px;">
             <strong>Solicitud Interna:</strong> ${orden.pindo} PINDO, ${orden.sanyo} SAYO | <strong>Total Piezas:</strong> ${orden.totalPiezas}
